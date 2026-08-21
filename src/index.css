@@ -276,6 +276,58 @@ button:disabled {
   40%, 80% { transform: translateX(6px); }
 }
 
+/* Attract-mode animations */
+.attract-fade {
+  animation: attract-in 500ms ease-out both;
+}
+
+@keyframes attract-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+.attract-pulse {
+  animation: attract-pulse 2s ease-in-out infinite;
+}
+
+@keyframes attract-pulse {
+  0%, 100% {
+    box-shadow: 0 0 0 0 rgb(var(--accent-rgb) / 0.55);
+    transform: scale(1);
+  }
+  50% {
+    box-shadow: 0 0 0 18px rgb(var(--accent-rgb) / 0);
+    transform: scale(1.02);
+  }
+}
+
+/* Progress bar shimmer */
+.progress-bar-fill::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgb(255 255 255 / 0.35) 50%,
+    transparent 100%
+  );
+  animation: progress-shimmer 2.4s linear infinite;
+}
+
+@keyframes progress-shimmer {
+  from { transform: translateX(-100%); }
+  to   { transform: translateX(100%); }
+}
+
+/* Hide scrollbars on horizontally-scrolling chip rows without losing scroll. */
+.scrollbar-hide {
+  scrollbar-width: none;
+}
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .brand-title,
   .show-button,

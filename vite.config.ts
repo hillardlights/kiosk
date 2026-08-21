@@ -16,6 +16,21 @@ export default defineConfig({
         navigateFallback: "/index.html",
         // Don't try to precache huge maps; keeps the SW light.
         maximumFileSizeToCacheInBytes: 3 * 1024 * 1024,
+        runtimeCaching: [
+          {
+            // Cross-origin album art from RF and its CDNs.
+            urlPattern: /^https?:\/\/(?!localhost).*\.(?:png|jpe?g|webp|gif|svg)$/i,
+            handler: "CacheFirst",
+            options: {
+              cacheName: "album-art",
+              expiration: {
+                maxEntries: 200,
+                maxAgeSeconds: 60 * 60 * 24 * 30,
+              },
+              cacheableResponse: { statuses: [0, 200] },
+            },
+          },
+        ],
       },
       manifest: {
         id: "/",

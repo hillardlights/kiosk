@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { AttractOverlay } from "../components/AttractOverlay";
 import { AudioPanel } from "../components/AudioPanel";
 import { BackgroundFX } from "../components/BackgroundFX";
 import { ConnectionStatus } from "../components/ConnectionStatus";
@@ -8,12 +9,26 @@ import { NowPlayingBar } from "../components/NowPlayingBar";
 import { PropPanel } from "../components/PropPanel";
 import { SongPicker } from "../components/SongPicker";
 import { TabBar } from "../components/TabBar";
+import { useIdle } from "../hooks/useIdle";
 import type { TabId } from "../state/types";
 import { Admin } from "./Admin";
+
+const ATTRACT_IDLE_MS = 60_000;
 
 export function Home() {
   const [tab, setTab] = useState<TabId>("songs");
   const [adminOpen, setAdminOpen] = useState(false);
+  const [attractDismissed, setAttractDismissed] = useState(false);
+  const isIdle = useIdle(ATTRACT_IDLE_MS);
+
+  // Attract mode never covers the admin panel.
+  const showAttract = isIdle && !adminOpen && !attractDismissed;
+
+  // Reset dismiss when the user has been active — so the next idle can arm again.
+  if (!isIdle && attractDismissed) {
+    // schedule a state update outside render to avoid warning
+    queueMicrotask(() => setAttractDismissed(false));
+  }
 
   return (
     <div className="relative flex min-h-dvh w-full flex-col overflow-hidden text-neutral-100">
@@ -31,6 +46,7 @@ export function Home() {
       </div>
       <ConnectionStatus />
       {adminOpen && <Admin onClose={() => setAdminOpen(false)} />}
+      {showAttract && <AttractOverlay onDismiss={() => setAttractDismissed(true)} />}
     </div>
   );
 }

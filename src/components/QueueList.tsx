@@ -1,14 +1,18 @@
 import { useMemo } from "react";
-import type { QueueItem, ShowStatus } from "../state/types";
+import { estimateEtaSec, formatEta } from "../services/eta";
+import type { KioskState, QueueItem, ShowStatus } from "../state/types";
+import { AlbumArt } from "./AlbumArt";
 
 export function QueueList({
   queue,
   kioskQueuedSongs,
   showStatus,
+  nowPlaying,
 }: {
   queue: QueueItem[];
   kioskQueuedSongs: string[];
   showStatus: ShowStatus;
+  nowPlaying: KioskState["nowPlaying"];
 }) {
   const kioskSet = useMemo(() => new Set(kioskQueuedSongs), [kioskQueuedSongs]);
   const cap = showStatus.jukeboxDepth > 0 ? showStatus.jukeboxDepth : null;
@@ -39,10 +43,11 @@ export function QueueList({
         <p className="font-mono text-xs text-cool-200/80">{capacityLabel}</p>
       </div>
 
-      <ol className="flex max-h-[38vh] min-h-0 flex-col gap-2 overflow-y-auto pr-1">
+      <ol className="flex max-h-[40vh] min-h-0 flex-col gap-2 overflow-y-auto pr-1">
         {queue.map((item, idx) => {
           const isUpNext = idx === 0;
           const mine = kioskSet.has(item.song.name);
+          const etaSec = estimateEtaSec(idx, { nowPlaying });
           return (
             <li
               key={`${item.position}-${item.song.name}`}
@@ -68,13 +73,24 @@ export function QueueList({
               >
                 {idx + 1}
               </span>
+              <AlbumArt
+                imageUrl={item.song.imageUrl}
+                alt={item.song.displayName}
+                size="tiny"
+              />
               <div className="min-w-0 flex-1">
                 <p className="truncate text-base font-semibold text-white">
                   {item.song.displayName}
                 </p>
-                {item.song.artist ? (
-                  <p className="truncate text-xs text-neutral-400">{item.song.artist}</p>
-                ) : null}
+                <div className="flex items-center gap-2 truncate text-xs text-neutral-400">
+                  {item.song.artist ? (
+                    <span className="truncate">{item.song.artist}</span>
+                  ) : null}
+                  {item.song.artist ? <span aria-hidden>·</span> : null}
+                  <span className="whitespace-nowrap text-neutral-500">
+                    {isUpNext ? "up next" : `plays in ${formatEta(etaSec)}`}
+                  </span>
+                </div>
               </div>
               <span className="shrink-0 text-[0.6rem] font-semibold uppercase tracking-widest">
                 {mine ? (

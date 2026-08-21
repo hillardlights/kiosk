@@ -1,9 +1,13 @@
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { useKiosk } from "../hooks/useKiosk";
+import type { Song } from "../state/types";
+import { AlbumArt } from "./AlbumArt";
+import { CategoryChips } from "./CategoryChips";
 import { QueueList } from "./QueueList";
 
 export function SongPicker() {
   const { state, actions } = useKiosk();
+  const [category, setCategory] = useState<string | null>(null);
 
   const queuedSongNames = useMemo(
     () => new Set(state.queue.map((q) => q.song.name)),
@@ -24,6 +28,19 @@ export function SongPicker() {
 
   const globalBlock = offline || showDisabled || votingMode;
 
+  const categories = useMemo(() => {
+    const set = new Set<string>();
+    for (const s of state.availableSongs) {
+      if (s.category && s.category.trim().length > 0) set.add(s.category);
+    }
+    return Array.from(set).sort();
+  }, [state.availableSongs]);
+
+  const visibleSongs = useMemo(() => {
+    if (!category) return state.availableSongs;
+    return state.availableSongs.filter((s) => s.category === category);
+  }, [state.availableSongs, category]);
+
   const onTap = (songName: string) => {
     if (globalBlock || queueFull || kioskLocked) return;
     void actions.queueSong(songName);
@@ -35,6 +52,7 @@ export function SongPicker() {
         queue={state.queue}
         kioskQueuedSongs={state.kioskQueuedSongs}
         showStatus={state.showStatus}
+        nowPlaying={state.nowPlaying}
       />
 
       {offline ? (
@@ -69,96 +87,149 @@ export function SongPicker() {
         />
       ) : null}
 
-      <div className="min-h-0 flex-1 overflow-y-auto pr-1 pb-4">
-        <p className="mb-3 text-[0.65rem] font-semibold uppercase tracking-[0.4em] text-neutral-500">
-          Pick a song
-        </p>
-        <ul className="grid grid-cols-1 gap-3">
-          {state.availableSongs.length === 0 && !offline ? (
-            <li className="rounded-2xl border border-white/10 bg-white/[0.03] px-5 py-6 text-center text-neutral-400">
-              No songs loaded from the show yet.
-            </li>
-          ) : null}
-          {state.availableSongs.map((song) => {
-            const isCurrent = song.name === currentSongName;
-            const isQueued = queuedSongNames.has(song.name);
-            const kioskQueued = kioskQueuedSet.has(song.name);
-            const flash =
-              feedback && feedback.songName === song.name ? feedback : null;
-            const flashKind = flash?.kind;
-            const disabled =
-              globalBlock || queueFull || kioskLocked || isCurrent || isQueued;
+      <div className="flex min-h-0 flex-1 flex-col gap-3">
+        <div className="flex items-center justify-between gap-3">
+          <p className="text-[0.65rem] font-semibold uppercase tracking-[0.4em] text-neutral-500">
+            Pick a song
+          </p>
+          <p className="text-[0.65rem] font-mono text-neutral-600">
+            {visibleSongs.length} of {state.availableSongs.length}
+          </p>
+        </div>
+        <CategoryChips
+          categories={categories}
+          active={category}
+          onSelect={setCategory}
+        />
 
-            return (
-              <li key={song.name}>
-                <button
-                  type="button"
-                  onClick={() => onTap(song.name)}
-                  disabled={disabled}
-                  className={
-                    "song-row group w-full rounded-2xl border px-5 py-4 text-left transition " +
-                    "active:scale-[0.99] disabled:opacity-70 " +
-                    (isCurrent
-                      ? "border-accent-500/45 bg-accent-500/15"
-                      : flashKind === "queued"
-                        ? "border-emerald-400/60 bg-emerald-500/15"
-                        : flashKind === "error"
-                          ? "border-rose-400/60 bg-rose-500/15"
-                          : kioskQueued
-                            ? "border-emerald-400/40 bg-emerald-500/10"
-                            : isQueued
-                              ? "border-cool-400/40 bg-cool-500/10"
-                              : "border-white/10 bg-white/[0.04] hover:bg-white/[0.07]")
-                  }
-                >
-                  <div className="flex items-center gap-4">
-                    <div className="min-w-0 flex-1">
-                      <p className="truncate text-xl font-bold text-white">
-                        {song.displayName}
-                      </p>
-                      {song.artist ? (
-                        <p className="truncate text-sm text-neutral-400">{song.artist}</p>
-                      ) : null}
-                      {flash && flash.kind === "error" ? (
-                        <p className="mt-1 text-sm text-rose-200">{flash.message}</p>
-                      ) : null}
-                    </div>
-                    <div className="flex flex-col items-end gap-1">
-                      <span className="text-[0.65rem] font-semibold uppercase tracking-[0.25em]">
-                        {isCurrent ? (
-                          <span className="text-accent-300">Playing</span>
-                        ) : flashKind === "queued" ? (
-                          <span className="text-emerald-300">Queued!</span>
-                        ) : flashKind === "error" ? (
-                          <span className="text-rose-300">Try again</span>
-                        ) : kioskQueued ? (
-                          <span className="text-emerald-300">Your request</span>
-                        ) : isQueued ? (
-                          <span className="text-cool-300">In queue</span>
-                        ) : (
-                          <span className="text-neutral-500 group-hover:text-accent-300">Tap to queue</span>
-                        )}
-                      </span>
-                    </div>
-                  </div>
-                </button>
+        <div className="min-h-0 flex-1 overflow-y-auto pr-1 pb-4">
+          <ul className="grid grid-cols-1 gap-3">
+            {visibleSongs.length === 0 ? (
+              <li className="rounded-2xl border border-white/10 bg-white/[0.03] px-5 py-6 text-center text-neutral-400">
+                {state.availableSongs.length === 0
+                  ? "No songs loaded from the show yet."
+                  : "No songs in this category."}
               </li>
-            );
-          })}
-        </ul>
+            ) : null}
+            {visibleSongs.map((song) => (
+              <SongRow
+                key={song.name}
+                song={song}
+                isCurrent={song.name === currentSongName}
+                isQueued={queuedSongNames.has(song.name)}
+                isKioskQueued={kioskQueuedSet.has(song.name)}
+                feedbackKind={
+                  feedback && feedback.songName === song.name ? feedback.kind : null
+                }
+                feedbackMessage={
+                  feedback &&
+                  feedback.songName === song.name &&
+                  feedback.kind === "error"
+                    ? feedback.message
+                    : null
+                }
+                disabled={
+                  globalBlock ||
+                  queueFull ||
+                  kioskLocked ||
+                  song.name === currentSongName ||
+                  queuedSongNames.has(song.name)
+                }
+                onTap={() => onTap(song.name)}
+              />
+            ))}
+          </ul>
+        </div>
       </div>
     </div>
   );
 }
 
+function SongRow({
+  song,
+  isCurrent,
+  isQueued,
+  isKioskQueued,
+  feedbackKind,
+  feedbackMessage,
+  disabled,
+  onTap,
+}: {
+  song: Song;
+  isCurrent: boolean;
+  isQueued: boolean;
+  isKioskQueued: boolean;
+  feedbackKind: "queued" | "error" | null;
+  feedbackMessage: string | null;
+  disabled: boolean;
+  onTap: () => void;
+}) {
+  const cls = isCurrent
+    ? "border-accent-500/45 bg-accent-500/15"
+    : feedbackKind === "queued"
+      ? "border-emerald-400/60 bg-emerald-500/15"
+      : feedbackKind === "error"
+        ? "border-rose-400/60 bg-rose-500/15"
+        : isKioskQueued
+          ? "border-emerald-400/40 bg-emerald-500/10"
+          : isQueued
+            ? "border-cool-400/40 bg-cool-500/10"
+            : "border-white/10 bg-white/[0.04] hover:bg-white/[0.07]";
+  return (
+    <li>
+      <button
+        type="button"
+        onClick={onTap}
+        disabled={disabled}
+        className={
+          "song-row group w-full rounded-2xl border px-4 py-3 text-left transition " +
+          "active:scale-[0.99] disabled:opacity-70 " +
+          cls
+        }
+      >
+        <div className="flex items-center gap-4">
+          <AlbumArt imageUrl={song.imageUrl} alt={song.displayName} size="small" />
+          <div className="min-w-0 flex-1">
+            <p className="truncate text-lg font-bold text-white">{song.displayName}</p>
+            {song.artist ? (
+              <p className="truncate text-sm text-neutral-400">{song.artist}</p>
+            ) : null}
+            {feedbackMessage ? (
+              <p className="mt-1 text-sm text-rose-200">{feedbackMessage}</p>
+            ) : null}
+          </div>
+          <div className="flex flex-col items-end gap-1">
+            <span className="text-[0.65rem] font-semibold uppercase tracking-[0.25em]">
+              {isCurrent ? (
+                <span className="text-accent-300">Playing</span>
+              ) : feedbackKind === "queued" ? (
+                <span className="text-emerald-300">Queued!</span>
+              ) : feedbackKind === "error" ? (
+                <span className="text-rose-300">Try again</span>
+              ) : isKioskQueued ? (
+                <span className="text-emerald-300">Your request</span>
+              ) : isQueued ? (
+                <span className="text-cool-300">In queue</span>
+              ) : (
+                <span className="text-neutral-500 group-hover:text-accent-300">
+                  Tap to queue
+                </span>
+              )}
+            </span>
+          </div>
+        </div>
+      </button>
+    </li>
+  );
+}
+
 function isQueueFull(jukeboxDepth: number, currentLength: number): boolean {
-  if (jukeboxDepth <= 0) return false; // 0 = unlimited per RF
+  if (jukeboxDepth <= 0) return false;
   return currentLength >= jukeboxDepth;
 }
 
 function kioskLockedSongName(kioskQueued: string[]): string {
-  const first = kioskQueued[0];
-  return first ?? "your song";
+  return kioskQueued[0] ?? "your song";
 }
 
 function Banner({
