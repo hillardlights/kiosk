@@ -1,6 +1,6 @@
 import { useMemo } from "react";
 import { useKiosk } from "../hooks/useKiosk";
-import type { QueueItem, ShowStatus } from "../state/types";
+import { QueueList } from "./QueueList";
 
 export function SongPicker() {
   const { state, actions } = useKiosk();
@@ -17,12 +17,11 @@ export function SongPicker() {
   const offline = state.rfConnection !== "online";
   const showDisabled = !state.showStatus.showEnabled;
   const votingMode = state.showStatus.mode === "VOTING";
-  const queueFull = isQueueFull(state.showStatus, state.queue.length);
+  const queueFull = isQueueFull(state.showStatus.jukeboxDepth, state.queue.length);
   const kioskLocked =
     state.showStatus.checkIfRequested && state.kioskQueuedSongs.length > 0;
   const feedback = state.songFeedback;
 
-  // Anything that prevents tapping any song
   const globalBlock = offline || showDisabled || votingMode;
 
   const onTap = (songName: string) => {
@@ -32,7 +31,11 @@ export function SongPicker() {
 
   return (
     <div className="flex h-full min-h-0 flex-col gap-4">
-      <QueueSummary queue={state.queue} showStatus={state.showStatus} />
+      <QueueList
+        queue={state.queue}
+        kioskQueuedSongs={state.kioskQueuedSongs}
+        showStatus={state.showStatus}
+      />
 
       {offline ? (
         <Banner
@@ -67,6 +70,9 @@ export function SongPicker() {
       ) : null}
 
       <div className="min-h-0 flex-1 overflow-y-auto pr-1 pb-4">
+        <p className="mb-3 text-[0.65rem] font-semibold uppercase tracking-[0.4em] text-neutral-500">
+          Pick a song
+        </p>
         <ul className="grid grid-cols-1 gap-3">
           {state.availableSongs.length === 0 && !offline ? (
             <li className="rounded-2xl border border-white/10 bg-white/[0.03] px-5 py-6 text-center text-neutral-400">
@@ -81,11 +87,7 @@ export function SongPicker() {
               feedback && feedback.songName === song.name ? feedback : null;
             const flashKind = flash?.kind;
             const disabled =
-              globalBlock ||
-              queueFull ||
-              kioskLocked ||
-              isCurrent ||
-              isQueued;
+              globalBlock || queueFull || kioskLocked || isCurrent || isQueued;
 
             return (
               <li key={song.name}>
@@ -149,58 +151,14 @@ export function SongPicker() {
   );
 }
 
-function isQueueFull(status: ShowStatus, currentLength: number): boolean {
-  if (status.jukeboxDepth <= 0) return false; // 0 means unlimited per RF
-  return currentLength >= status.jukeboxDepth;
+function isQueueFull(jukeboxDepth: number, currentLength: number): boolean {
+  if (jukeboxDepth <= 0) return false; // 0 = unlimited per RF
+  return currentLength >= jukeboxDepth;
 }
 
 function kioskLockedSongName(kioskQueued: string[]): string {
   const first = kioskQueued[0];
   return first ?? "your song";
-}
-
-function QueueSummary({
-  queue,
-  showStatus,
-}: {
-  queue: QueueItem[];
-  showStatus: ShowStatus;
-}) {
-  const cap = showStatus.jukeboxDepth > 0 ? showStatus.jukeboxDepth : null;
-  const capacityLabel = cap != null ? `${queue.length} / ${cap}` : `${queue.length}`;
-
-  if (queue.length === 0) {
-    return (
-      <div className="rounded-2xl border border-white/8 bg-black/40 px-4 py-3">
-        <div className="flex items-center justify-between">
-          <p className="text-[0.65rem] font-semibold uppercase tracking-[0.4em] text-neutral-500">
-            Queue
-          </p>
-          <p className="font-mono text-xs text-neutral-500">{capacityLabel}</p>
-        </div>
-        <p className="mt-1 text-center text-sm text-neutral-400">
-          Queue is empty — you're next up!
-        </p>
-      </div>
-    );
-  }
-
-  const upNext = queue[0]!;
-  const rest = queue.length - 1;
-  return (
-    <div className="rounded-2xl border border-cool-500/25 bg-cool-950/30 px-4 py-3">
-      <div className="flex items-center justify-between">
-        <p className="text-[0.65rem] font-semibold uppercase tracking-[0.4em] text-cool-300/80">
-          Up next
-        </p>
-        <p className="font-mono text-xs text-cool-200/80">{capacityLabel}</p>
-      </div>
-      <p className="mt-1 truncate text-lg font-semibold text-white">{upNext.song.displayName}</p>
-      {rest > 0 ? (
-        <p className="text-xs text-neutral-400">+ {rest} more in the queue</p>
-      ) : null}
-    </div>
-  );
 }
 
 function Banner({
