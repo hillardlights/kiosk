@@ -43,3 +43,6 @@ dev-dist
 
 # TypeScript incremental build info
 *.tsbuildinfo
+
+# Research scratchpad (agents may drop notes here)
+_*

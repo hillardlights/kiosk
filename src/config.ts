@@ -31,7 +31,10 @@ const DEFAULT_PROPS: PropDef[] = [
 
 export const config = {
   fppUrl: envString("VITE_FPP_URL", "http://192.168.1.1"),
-  rfUrl: envString("VITE_RF_URL", "https://hillardlightshows.remotefalcon.com"),
+  rfBaseUrl: envString("VITE_RF_BASE_URL", "https://remotefalcon.com/remote-falcon-viewer"),
+  rfSubdomain: envString("VITE_RF_SUBDOMAIN", "hillardlightshows"),
+  rfPollMs: envNumber("VITE_RF_POLL_MS", 3000),
+  rfPresenceMs: envNumber("VITE_RF_PRESENCE_MS", 30000),
   audioOnPreset: envString("VITE_AUDIO_ON_PRESET", "KIOSK_AUDIO_ON"),
   audioOffPreset: envString("VITE_AUDIO_OFF_PRESET", "KIOSK_AUDIO_OFF"),
   audioDurationSeconds: envNumber("VITE_AUDIO_DURATION_SECONDS", 360),
