@@ -2,13 +2,17 @@
 
 @theme {
   --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --color-halloween-orange: #f97316;
+  --color-halloween-ember: #ea580c;
+  --color-halloween-purple: #7c3aed;
+  --color-halloween-night: #0a0a0a;
 }
 
 html,
 body,
 #root {
   height: 100%;
-  background-color: #0a0a0a;
+  background-color: var(--color-halloween-night);
   color: #f5f5f5;
 }
 
@@ -19,4 +23,141 @@ body {
   -webkit-user-select: none;
   user-select: none;
   touch-action: manipulation;
+  font-family: var(--font-sans);
+}
+
+button {
+  cursor: pointer;
+}
+
+button:disabled {
+  cursor: default;
+}
+
+/* Title glow */
+.halloween-title {
+  background: linear-gradient(180deg, #ffb347 0%, #f97316 55%, #c2410c 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  text-shadow:
+    0 0 24px rgba(249, 115, 22, 0.35),
+    0 0 60px rgba(249, 115, 22, 0.2);
+  animation: title-flicker 6s ease-in-out infinite;
+}
+
+@keyframes title-flicker {
+  0%, 100% { filter: brightness(1); }
+  47% { filter: brightness(1); }
+  50% { filter: brightness(1.15); }
+  53% { filter: brightness(0.92); }
+  56% { filter: brightness(1.08); }
+  60% { filter: brightness(1); }
+}
+
+/* Primary show button */
+.show-button {
+  background:
+    linear-gradient(180deg, #fb923c 0%, #ea580c 55%, #9a3412 100%);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  box-shadow:
+    0 0 0 1px rgba(255, 255, 255, 0.04) inset,
+    0 20px 50px -20px rgba(249, 115, 22, 0.75),
+    0 0 40px rgba(249, 115, 22, 0.35);
+  min-height: 220px;
+  animation: primary-pulse 3.4s ease-in-out infinite;
+}
+
+.show-button:disabled {
+  animation: none;
+}
+
+.show-button.is-playing {
+  background: linear-gradient(180deg, #14532d 0%, #166534 55%, #052e16 100%);
+  box-shadow:
+    0 0 0 1px rgba(255, 255, 255, 0.05) inset,
+    0 20px 50px -20px rgba(34, 197, 94, 0.55),
+    0 0 32px rgba(34, 197, 94, 0.28);
+  animation: none;
+}
+
+@keyframes primary-pulse {
+  0%, 100% {
+    box-shadow:
+      0 0 0 1px rgba(255, 255, 255, 0.04) inset,
+      0 20px 50px -20px rgba(249, 115, 22, 0.75),
+      0 0 40px rgba(249, 115, 22, 0.35);
+  }
+  50% {
+    box-shadow:
+      0 0 0 1px rgba(255, 255, 255, 0.06) inset,
+      0 24px 60px -20px rgba(249, 115, 22, 0.95),
+      0 0 70px rgba(249, 115, 22, 0.55);
+  }
+}
+
+/* Audio button */
+.audio-button {
+  background: linear-gradient(180deg, #4c1d95 0%, #2e1065 55%, #1e1b4b 100%);
+  border: 1px solid rgba(196, 181, 253, 0.18);
+  box-shadow:
+    0 0 0 1px rgba(255, 255, 255, 0.04) inset,
+    0 18px 40px -20px rgba(124, 58, 237, 0.65),
+    0 0 30px rgba(124, 58, 237, 0.25);
+  min-height: 170px;
+}
+
+.audio-button.is-active {
+  background: linear-gradient(180deg, #7c2d12 0%, #431407 55%, #1c0a03 100%);
+  border-color: rgba(251, 146, 60, 0.35);
+  box-shadow:
+    0 0 0 1px rgba(255, 255, 255, 0.05) inset,
+    0 18px 40px -20px rgba(249, 115, 22, 0.75),
+    0 0 40px rgba(249, 115, 22, 0.4);
+}
+
+/* Fog layers */
+.fog {
+  position: absolute;
+  inset: -20%;
+  filter: blur(80px);
+  opacity: 0.35;
+  pointer-events: none;
+  will-change: transform;
+}
+
+.fog-a {
+  background: radial-gradient(circle at 30% 30%, rgba(249, 115, 22, 0.55), transparent 55%);
+  animation: fog-drift-a 42s ease-in-out infinite alternate;
+}
+
+.fog-b {
+  background: radial-gradient(circle at 70% 60%, rgba(124, 58, 237, 0.5), transparent 55%);
+  animation: fog-drift-b 55s ease-in-out infinite alternate;
+}
+
+.fog-c {
+  background: radial-gradient(circle at 50% 80%, rgba(220, 38, 38, 0.35), transparent 55%);
+  animation: fog-drift-c 68s ease-in-out infinite alternate;
+}
+
+@keyframes fog-drift-a {
+  from { transform: translate3d(-4%, -3%, 0) scale(1); }
+  to   { transform: translate3d(6%, 4%, 0) scale(1.15); }
+}
+@keyframes fog-drift-b {
+  from { transform: translate3d(5%, 2%, 0) scale(1.1); }
+  to   { transform: translate3d(-6%, -5%, 0) scale(1); }
+}
+@keyframes fog-drift-c {
+  from { transform: translate3d(-3%, 5%, 0) scale(1); }
+  to   { transform: translate3d(4%, -4%, 0) scale(1.2); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .halloween-title,
+  .show-button,
+  .fog {
+    animation: none !important;
+  }
 }
