@@ -1,10 +1,11 @@
 import { config } from "../config";
 
 // FPP's /api/system/status returns a rich object; we type only the fields
-// we care about. Everything else is ignored.
+// we care about. Numeric fields arrive as strings — always parse.
 export type FppStatus = {
   status?: string;
-  mode?: string;
+  mode?: string | number;
+  mode_name?: string;
   fppd?: string;
   volume?: number;
   current_playlist?: {
@@ -14,9 +15,9 @@ export type FppStatus = {
   };
   current_sequence?: string;
   current_song?: string;
-  time?: string;
-  time_elapsed?: string;
-  time_remaining?: string;
+  seconds_elapsed?: string;
+  seconds_remaining?: string;
+  seconds_played?: string;
 };
 
 export type FppError = {
@@ -27,6 +28,12 @@ export type FppError = {
 export type FppResult<T = void> =
   | { ok: true; data: T }
   | { ok: false; error: FppError };
+
+export type FppNowPlaying = {
+  sequenceName: string;
+  elapsedSec: number;
+  durationSec: number;
+};
 
 function joinUrl(base: string, path: string): string {
   const trimmedBase = base.replace(/\/+$/, "");
@@ -81,4 +88,28 @@ export async function triggerPreset(
 
 export async function getStatus(signal?: AbortSignal): Promise<FppResult<FppStatus>> {
   return req<FppStatus>("/api/system/status", signal);
+}
+
+// FPP names sequences with extensions (`.fseq`, `.mp3`, etc.); RF stores
+// them without. Normalize so we can match FPP's currently-playing sequence
+// against the RF catalog for metadata enrichment.
+export function stripSequenceExtension(name: string): string {
+  return name.replace(/\.(fseq|mp3|wav|ogg|flac|m4a)$/i, "");
+}
+
+// Turn a raw status payload into a normalized now-playing snapshot, or
+// null if FPP isn't currently playing a sequence.
+export function extractNowPlaying(status: FppStatus): FppNowPlaying | null {
+  const raw = status.current_sequence;
+  if (!raw || raw.length === 0) return null;
+  const elapsed = Number(status.seconds_elapsed);
+  const remaining = Number(status.seconds_remaining);
+  if (!Number.isFinite(elapsed) || !Number.isFinite(remaining)) return null;
+  const duration = elapsed + remaining;
+  if (duration <= 0) return null;
+  return {
+    sequenceName: stripSequenceExtension(raw),
+    elapsedSec: elapsed,
+    durationSec: duration,
+  };
 }

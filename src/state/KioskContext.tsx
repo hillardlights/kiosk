@@ -41,6 +41,7 @@ type Action =
   | { type: "connection/fpp"; state: ConnectionState }
   | { type: "connection/rf"; state: ConnectionState }
   | { type: "rf/sync"; snapshot: RfSnapshot }
+  | { type: "fpp/anchor-nowplaying"; anchor: fpp.FppNowPlaying }
   | { type: "song/queue-optimistic"; item: QueueItem }
   | { type: "song/advance" }
   | { type: "song/tick"; elapsedSec: number }
@@ -130,6 +131,41 @@ function reducer(state: KioskState, action: Action): KioskState {
         nowPlaying: merged,
         showStatus: action.snapshot.showStatus,
         kioskQueuedSongs: nextKioskQueued,
+      };
+    }
+    case "fpp/anchor-nowplaying": {
+      const { sequenceName, elapsedSec, durationSec } = action.anchor;
+      // Same song as RF told us about? Just re-anchor timing.
+      if (state.nowPlaying && state.nowPlaying.song.name === sequenceName) {
+        return {
+          ...state,
+          nowPlaying: {
+            ...state.nowPlaying,
+            elapsedSec,
+            durationSec,
+          },
+        };
+      }
+      // Different song (or no RF now-playing): FPP is the source of truth
+      // for what's actually on the wire. Try to enrich with RF catalog data
+      // (artist, image); fall back to a minimal Song from FPP alone.
+      const rich = state.availableSongs.find((s) => s.name === sequenceName);
+      const song: Song = rich ?? {
+        name: sequenceName,
+        displayName: sequenceName,
+        artist: null,
+        imageUrl: null,
+        category: null,
+        active: true,
+      };
+      return {
+        ...state,
+        nowPlaying: {
+          song,
+          elapsedSec,
+          durationSec,
+          queuedByKiosk: false,
+        },
       };
     }
     case "song/queue-optimistic": {
@@ -512,10 +548,13 @@ export function KioskProvider({ children }: { children: ReactNode }) {
       if (cancelled) return;
       const result = await fpp.getStatus(controller.signal);
       if (cancelled) return;
-      dispatch({
-        type: "connection/fpp",
-        state: result.ok ? "online" : "offline",
-      });
+      if (result.ok) {
+        dispatch({ type: "connection/fpp", state: "online" });
+        const anchor = fpp.extractNowPlaying(result.data);
+        if (anchor) dispatch({ type: "fpp/anchor-nowplaying", anchor });
+      } else {
+        dispatch({ type: "connection/fpp", state: "offline" });
+      }
       if (!cancelled) {
         timer = window.setTimeout(tick, FPP_STATUS_POLL_MS);
       }
@@ -541,22 +580,30 @@ export function KioskProvider({ children }: { children: ReactNode }) {
     return () => window.clearInterval(id);
   }, []);
 
-  // Now-playing local ticker for the progress bar.
+  // Now-playing local ticker — increments by 1s each second to smooth the
+  // progress bar between anchor points. FPP's anchor (every 5s) will re-sync
+  // this to reality; using a ref means the ticker always reads the latest
+  // elapsedSec even when the reducer overwrites it via anchoring.
+  const nowPlayingRef = useRef(state.nowPlaying);
+  nowPlayingRef.current = state.nowPlaying;
+
   useEffect(() => {
     if (!state.nowPlaying) return;
-    const duration = state.nowPlaying.durationSec;
-    if (duration == null) return;
-    const startTs = Date.now() - state.nowPlaying.elapsedSec * 1000;
     const id = window.setInterval(() => {
-      const elapsed = Math.min(duration, Math.floor((Date.now() - startTs) / 1000));
-      dispatch({ type: "song/tick", elapsedSec: elapsed });
-      if (elapsed >= duration && config.demoMode) {
+      const np = nowPlayingRef.current;
+      if (!np) return;
+      const cap = np.durationSec ?? Infinity;
+      const nextElapsed = Math.min(cap, np.elapsedSec + 1);
+      if (nextElapsed !== np.elapsedSec) {
+        dispatch({ type: "song/tick", elapsedSec: nextElapsed });
+      }
+      if (np.durationSec != null && nextElapsed >= np.durationSec && config.demoMode) {
         window.clearInterval(id);
         dispatch({ type: "song/advance" });
       }
     }, 1000);
     return () => window.clearInterval(id);
-  }, [state.nowPlaying?.song.name, state.nowPlaying?.durationSec]);
+  }, [state.nowPlaying?.song.name]);
 
   // Audio countdown — when it hits zero, fire the OFF preset for real.
   // Phase 6 replaces this with an absolute-timestamp + localStorage impl.
