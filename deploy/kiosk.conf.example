@@ -17,7 +17,7 @@
 VITE_DEMO_MODE=false
 
 # Falcon Player REST endpoint on the show LAN.
-VITE_FPP_URL=http://192.168.5.8
+VITE_FPP_URL=http://192.168.1.XXX
 
 # Your Remote Falcon show subdomain (the part before .remotefalcon.com).
 VITE_RF_SUBDOMAIN=hillardlightshows
