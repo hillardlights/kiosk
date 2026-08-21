@@ -4,7 +4,7 @@ export function AudioPanel() {
   return (
     <div className="flex h-full min-h-0 flex-col gap-4">
       <div className="rounded-2xl border border-white/8 bg-black/40 px-4 py-3 text-center">
-        <p className="text-[0.65rem] font-semibold uppercase tracking-[0.4em] text-orange-300/80">
+        <p className="text-[0.65rem] font-semibold uppercase tracking-[0.4em] text-accent-300/80">
           Outdoor Speakers
         </p>
         <p className="mt-1 text-sm text-neutral-300">

@@ -51,8 +51,8 @@ export function AudioButton() {
         className={
           "mt-3 block font-mono font-semibold tracking-[0.15em] " +
           (isActive
-            ? "text-[clamp(2.5rem,6vw,4rem)] text-orange-200 drop-shadow-[0_0_18px_rgba(249,115,22,0.55)]"
-            : "text-[clamp(0.9rem,1.6vw,1.25rem)] text-purple-100/80")
+            ? "text-[clamp(2.5rem,6vw,4rem)] text-accent-200 drop-shadow-[0_0_18px_rgb(var(--accent-rgb) / 0.55)]"
+            : "text-[clamp(0.9rem,1.6vw,1.25rem)] text-cool-100/80")
         }
       >
         {detail}

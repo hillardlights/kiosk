@@ -35,6 +35,11 @@ async function loadRuntimeConfig(): Promise<void> {
 void (async () => {
   await loadRuntimeConfig();
   const { default: App } = await import("./App");
+  const { config } = await import("./config");
+  // Set the season attribute so index.css can swap the accent/cool
+  // palette. Must happen before first paint of app content so we
+  // never flash the wrong season's colors.
+  document.documentElement.dataset.season = config.brand.season;
   createRoot(rootElement).render(
     <StrictMode>
       <App />

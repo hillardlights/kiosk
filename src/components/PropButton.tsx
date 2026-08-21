@@ -35,10 +35,10 @@ export function PropButton({ def }: { def: PropDef }) {
             ? "border-white/10 bg-white/[0.04] text-neutral-500"
             : offline
               ? "border-rose-500/25 bg-rose-950/20 text-rose-200/60"
-              : "border-orange-500/30 bg-gradient-to-b from-orange-950/60 to-black/70 text-orange-100 shadow-[0_0_28px_rgba(249,115,22,0.15)]")
+              : "border-accent-500/30 bg-gradient-to-b from-accent-950/60 to-black/70 text-accent-100 shadow-[0_0_28px_rgb(var(--accent-rgb) / 0.15)]")
       }
     >
-      <span className="text-4xl drop-shadow-[0_0_12px_rgba(249,115,22,0.5)]">{def.emoji}</span>
+      <span className="text-4xl drop-shadow-[0_0_12px_rgb(var(--accent-rgb) / 0.5)]">{def.emoji}</span>
       <span className="text-center text-sm font-bold uppercase tracking-[0.15em]">
         {def.label}
       </span>
@@ -51,7 +51,7 @@ export function PropButton({ def }: { def: PropDef }) {
       ) : offline ? (
         <span className="mt-1 text-[0.6rem] uppercase tracking-widest text-rose-300/70">Offline</span>
       ) : (
-        <span className="mt-1 text-[0.6rem] uppercase tracking-widest text-orange-300/60">Tap</span>
+        <span className="mt-1 text-[0.6rem] uppercase tracking-widest text-accent-300/60">Tap</span>
       )}
     </button>
   );

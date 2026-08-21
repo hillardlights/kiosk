@@ -30,14 +30,14 @@ export function Header({ onAdminGesture }: { onAdminGesture?: () => void }) {
         aria-label={brand.name}
         className={
           "select-none rounded-2xl px-6 py-1 text-center transition " +
-          (flash ? "bg-orange-500/20" : "bg-transparent")
+          (flash ? "bg-accent-500/20" : "bg-transparent")
         }
       >
         <div className="flex items-baseline justify-center gap-3">
           <span className="text-[clamp(1.5rem,3.5vw,2.5rem)] leading-none" aria-hidden>
             {brand.seasonEmoji}
           </span>
-          <h1 className="halloween-title text-[clamp(2rem,5.5vw,3.75rem)] font-black uppercase leading-none tracking-[0.08em]">
+          <h1 className="brand-title text-[clamp(2rem,5.5vw,3.75rem)] font-black uppercase leading-none tracking-[0.08em]">
             {brand.name}
           </h1>
           <span className="text-[clamp(1.5rem,3.5vw,2.5rem)] leading-none" aria-hidden>
@@ -45,7 +45,7 @@ export function Header({ onAdminGesture }: { onAdminGesture?: () => void }) {
           </span>
         </div>
       </button>
-      <p className="mt-2 text-[0.65rem] font-semibold uppercase tracking-[0.5em] text-orange-300/70">
+      <p className="mt-2 text-[0.65rem] font-semibold uppercase tracking-[0.5em] text-accent-300/70">
         {brand.seasonLabel} {brand.seasonYear}
       </p>
     </header>

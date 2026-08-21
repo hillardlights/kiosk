@@ -31,7 +31,7 @@ export function TabBar({
             className={
               "flex flex-col items-center justify-center gap-1 rounded-2xl py-4 transition active:scale-[0.98] " +
               (isActive
-                ? "bg-gradient-to-b from-orange-500/25 to-orange-500/5 text-orange-100 shadow-[0_0_18px_rgba(249,115,22,0.28)]"
+                ? "bg-gradient-to-b from-accent-500/25 to-accent-500/5 text-accent-100 shadow-[0_0_18px_rgb(var(--accent-rgb) / 0.28)]"
                 : "text-neutral-400 hover:text-neutral-200")
             }
           >

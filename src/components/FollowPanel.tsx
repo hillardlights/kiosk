@@ -9,8 +9,8 @@ export function FollowPanel() {
 
   return (
     <div className="flex h-full min-h-0 flex-col gap-4">
-      <div className="rounded-2xl border border-orange-500/25 bg-black/40 px-4 py-3 text-center">
-        <p className="text-[0.65rem] font-semibold uppercase tracking-[0.4em] text-orange-300/80">
+      <div className="rounded-2xl border border-accent-500/25 bg-black/40 px-4 py-3 text-center">
+        <p className="text-[0.65rem] font-semibold uppercase tracking-[0.4em] text-accent-300/80">
           Follow Hillard Lights
         </p>
         <p className="mt-1 text-sm text-neutral-300">
@@ -27,7 +27,7 @@ export function FollowPanel() {
                 key={key}
                 className="flex items-center gap-5 rounded-3xl border border-white/10 bg-white/[0.04] p-5"
               >
-                <div className="rounded-2xl bg-white p-3 shadow-[0_0_18px_rgba(249,115,22,0.25)]">
+                <div className="rounded-2xl bg-white p-3 shadow-[0_0_18px_rgb(var(--accent-rgb) / 0.25)]">
                   <QRCodeSVG
                     value={s.url}
                     size={132}
@@ -44,7 +44,7 @@ export function FollowPanel() {
                   <p className="mt-2 truncate text-xl font-bold uppercase tracking-[0.12em] text-white">
                     {s.label}
                   </p>
-                  <p className="truncate text-sm text-orange-200/80">{s.handle}</p>
+                  <p className="truncate text-sm text-accent-200/80">{s.handle}</p>
                   <p className="mt-2 text-xs text-neutral-500">Scan with your camera</p>
                 </div>
               </div>
@@ -52,8 +52,8 @@ export function FollowPanel() {
           })}
         </div>
 
-        <div className="mt-5 rounded-3xl border border-purple-500/25 bg-purple-950/25 px-5 py-4 text-center">
-          <p className="text-[0.65rem] font-semibold uppercase tracking-[0.4em] text-purple-300/80">
+        <div className="mt-5 rounded-3xl border border-cool-500/25 bg-cool-950/25 px-5 py-4 text-center">
+          <p className="text-[0.65rem] font-semibold uppercase tracking-[0.4em] text-cool-300/80">
             Or visit
           </p>
           <p className="mt-1 text-lg font-bold text-white">{brand.siteUrl.replace(/^https?:\/\//, "")}</p>

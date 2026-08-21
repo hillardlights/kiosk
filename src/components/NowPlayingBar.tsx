@@ -30,8 +30,8 @@ export function NowPlayingBar() {
     : 0;
 
   return (
-    <section className="w-full rounded-3xl border border-orange-500/25 bg-black/50 px-5 py-4 backdrop-blur-md">
-      <p className="text-center text-[0.65rem] font-semibold uppercase tracking-[0.5em] text-orange-300/85">
+    <section className="w-full rounded-3xl border border-accent-500/25 bg-black/50 px-5 py-4 backdrop-blur-md">
+      <p className="text-center text-[0.65rem] font-semibold uppercase tracking-[0.5em] text-accent-300/85">
         Now Playing
       </p>
       <p className="mt-1 truncate text-center text-2xl font-bold text-white">
@@ -44,7 +44,7 @@ export function NowPlayingBar() {
         <>
           <div className="mt-3 h-1.5 w-full overflow-hidden rounded-full bg-white/10">
             <div
-              className="h-full rounded-full bg-gradient-to-r from-orange-500 to-orange-300 shadow-[0_0_12px_rgba(249,115,22,0.6)]"
+              className="h-full rounded-full bg-gradient-to-r from-accent-500 to-accent-300 shadow-[0_0_12px_rgb(var(--accent-rgb) / 0.6)]"
               style={{ width: `${pct}%` }}
             />
           </div>

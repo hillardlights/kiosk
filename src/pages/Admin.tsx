@@ -37,7 +37,7 @@ function AdminOverlay({
   return (
     <div className="fixed inset-0 z-50 flex flex-col overflow-hidden bg-neutral-950 text-neutral-100">
       <header className="flex items-center justify-between border-b border-white/10 bg-black/70 px-6 py-4">
-        <p className="text-[0.7rem] font-semibold uppercase tracking-[0.5em] text-orange-300/80">
+        <p className="text-[0.7rem] font-semibold uppercase tracking-[0.5em] text-accent-300/80">
           {title}
         </p>
         <button
@@ -153,7 +153,7 @@ function AdminContent({ onClose }: { onClose: () => void }) {
           <KV k="RF presence" v={`${config.rfPresenceMs}ms`} />
         </div>
         <p className="mt-4 text-[0.65rem] text-neutral-500">
-          <span className="mr-1 inline-block h-2 w-2 rounded-full bg-orange-400 align-middle" />
+          <span className="mr-1 inline-block h-2 w-2 rounded-full bg-accent-400 align-middle" />
           Highlighted values come from /boot/firmware/kiosk.conf; others are compiled-in defaults.
         </p>
       </Section>
@@ -200,7 +200,7 @@ function AdminContent({ onClose }: { onClose: () => void }) {
         <button
           type="button"
           onClick={onClose}
-          className="w-full rounded-2xl border border-orange-500/40 bg-orange-500/10 px-8 py-4 text-lg font-bold uppercase tracking-widest text-orange-100 hover:bg-orange-500/15"
+          className="w-full rounded-2xl border border-accent-500/40 bg-accent-500/10 px-8 py-4 text-lg font-bold uppercase tracking-widest text-accent-100 hover:bg-accent-500/15"
         >
           Return to kiosk
         </button>
@@ -275,7 +275,7 @@ function KV({ k, v, highlight = false }: { k: string; v: string; highlight?: boo
       <span className="flex items-center gap-2 text-neutral-400">
         {highlight ? (
           <span
-            className="inline-block h-2 w-2 shrink-0 rounded-full bg-orange-400"
+            className="inline-block h-2 w-2 shrink-0 rounded-full bg-accent-400"
             title="Overridden by /boot/firmware/kiosk.conf"
           />
         ) : null}

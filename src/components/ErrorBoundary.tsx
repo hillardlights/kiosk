@@ -22,14 +22,14 @@ export class ErrorBoundary extends Component<Props, State> {
     if (this.state.error) {
       return (
         <main className="flex min-h-dvh flex-col items-center justify-center gap-6 bg-neutral-950 px-8 text-center text-neutral-100">
-          <h1 className="text-3xl font-bold text-orange-400">Something went wrong</h1>
+          <h1 className="text-3xl font-bold text-accent-400">Something went wrong</h1>
           <p className="max-w-md text-neutral-400">
             The kiosk hit an unexpected error. Reloading should recover it.
           </p>
           <button
             type="button"
             onClick={this.handleReload}
-            className="rounded-2xl bg-orange-500 px-8 py-4 text-lg font-bold uppercase tracking-widest text-black shadow-[0_0_30px_rgba(249,115,22,0.35)]"
+            className="rounded-2xl bg-accent-500 px-8 py-4 text-lg font-bold uppercase tracking-widest text-black shadow-[0_0_30px_rgb(var(--accent-rgb) / 0.35)]"
           >
             Reload
           </button>

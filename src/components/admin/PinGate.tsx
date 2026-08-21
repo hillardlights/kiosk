@@ -45,7 +45,7 @@ export function PinGate({
   return (
     <div className="flex min-h-dvh flex-col items-center justify-center gap-6 px-8">
       <div className="text-center">
-        <p className="text-[0.7rem] font-semibold uppercase tracking-[0.5em] text-orange-300/80">
+        <p className="text-[0.7rem] font-semibold uppercase tracking-[0.5em] text-accent-300/80">
           Admin Access
         </p>
         <p className="mt-2 text-3xl font-bold text-white">Enter PIN</p>
@@ -63,7 +63,7 @@ export function PinGate({
             key={i}
             className={
               "h-4 w-4 rounded-full " +
-              (i < entered.length ? "bg-orange-400" : "bg-white/15")
+              (i < entered.length ? "bg-accent-400" : "bg-white/15")
             }
           />
         ))}

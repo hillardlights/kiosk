@@ -97,7 +97,7 @@ export function SongPicker() {
                     "song-row group w-full rounded-2xl border px-5 py-4 text-left transition " +
                     "active:scale-[0.99] disabled:opacity-70 " +
                     (isCurrent
-                      ? "border-orange-500/45 bg-orange-500/15"
+                      ? "border-accent-500/45 bg-accent-500/15"
                       : flashKind === "queued"
                         ? "border-emerald-400/60 bg-emerald-500/15"
                         : flashKind === "error"
@@ -105,7 +105,7 @@ export function SongPicker() {
                           : kioskQueued
                             ? "border-emerald-400/40 bg-emerald-500/10"
                             : isQueued
-                              ? "border-purple-400/40 bg-purple-500/10"
+                              ? "border-cool-400/40 bg-cool-500/10"
                               : "border-white/10 bg-white/[0.04] hover:bg-white/[0.07]")
                   }
                 >
@@ -124,7 +124,7 @@ export function SongPicker() {
                     <div className="flex flex-col items-end gap-1">
                       <span className="text-[0.65rem] font-semibold uppercase tracking-[0.25em]">
                         {isCurrent ? (
-                          <span className="text-orange-300">Playing</span>
+                          <span className="text-accent-300">Playing</span>
                         ) : flashKind === "queued" ? (
                           <span className="text-emerald-300">Queued!</span>
                         ) : flashKind === "error" ? (
@@ -132,9 +132,9 @@ export function SongPicker() {
                         ) : kioskQueued ? (
                           <span className="text-emerald-300">Your request</span>
                         ) : isQueued ? (
-                          <span className="text-purple-300">In queue</span>
+                          <span className="text-cool-300">In queue</span>
                         ) : (
-                          <span className="text-neutral-500 group-hover:text-orange-300">Tap to queue</span>
+                          <span className="text-neutral-500 group-hover:text-accent-300">Tap to queue</span>
                         )}
                       </span>
                     </div>
@@ -188,12 +188,12 @@ function QueueSummary({
   const upNext = queue[0]!;
   const rest = queue.length - 1;
   return (
-    <div className="rounded-2xl border border-purple-500/25 bg-purple-950/30 px-4 py-3">
+    <div className="rounded-2xl border border-cool-500/25 bg-cool-950/30 px-4 py-3">
       <div className="flex items-center justify-between">
-        <p className="text-[0.65rem] font-semibold uppercase tracking-[0.4em] text-purple-300/80">
+        <p className="text-[0.65rem] font-semibold uppercase tracking-[0.4em] text-cool-300/80">
           Up next
         </p>
-        <p className="font-mono text-xs text-purple-200/80">{capacityLabel}</p>
+        <p className="font-mono text-xs text-cool-200/80">{capacityLabel}</p>
       </div>
       <p className="mt-1 truncate text-lg font-semibold text-white">{upNext.song.displayName}</p>
       {rest > 0 ? (

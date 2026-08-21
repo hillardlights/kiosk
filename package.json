@@ -1,7 +1,7 @@
 {
   "name": "kiosk",
   "private": true,
-  "version": "0.8.0",
+  "version": "0.9.0",
   "type": "module",
   "description": "Hillard Lights outdoor touchscreen kiosk for controlling the Falcon Player show controller.",
   "scripts": {
