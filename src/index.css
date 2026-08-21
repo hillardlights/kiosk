@@ -154,6 +154,12 @@ button:disabled {
   to   { transform: translate3d(4%, -4%, 0) scale(1.2); }
 }
 
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  20%, 60% { transform: translateX(-6px); }
+  40%, 80% { transform: translateX(6px); }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .halloween-title,
   .show-button,

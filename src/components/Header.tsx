@@ -4,7 +4,7 @@ import { config } from "../config";
 const ADMIN_TAP_COUNT = 7;
 const ADMIN_TAP_WINDOW_MS = 3000;
 
-export function Header() {
+export function Header({ onAdminGesture }: { onAdminGesture?: () => void }) {
   const [flash, setFlash] = useState(false);
   const tapsRef = useRef<number[]>([]);
 
@@ -16,9 +16,9 @@ export function Header() {
       tapsRef.current = [];
       setFlash(true);
       window.setTimeout(() => setFlash(false), 400);
-      console.info("[admin] gesture recognized");
+      onAdminGesture?.();
     }
-  }, []);
+  }, [onAdminGesture]);
 
   const { brand } = config;
 

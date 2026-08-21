@@ -9,15 +9,17 @@ import { PropPanel } from "../components/PropPanel";
 import { SongPicker } from "../components/SongPicker";
 import { TabBar } from "../components/TabBar";
 import type { TabId } from "../state/types";
+import { Admin } from "./Admin";
 
 export function Home() {
   const [tab, setTab] = useState<TabId>("songs");
+  const [adminOpen, setAdminOpen] = useState(false);
 
   return (
     <div className="relative flex min-h-dvh w-full flex-col overflow-hidden text-neutral-100">
       <BackgroundFX />
       <div className="relative mx-auto flex min-h-dvh w-full max-w-[900px] flex-col gap-4 px-6 pb-6 pt-4">
-        <Header />
+        <Header onAdminGesture={() => setAdminOpen(true)} />
         <NowPlayingBar />
         <main className="min-h-0 flex-1">
           {tab === "songs" && <SongPicker />}
@@ -28,6 +30,7 @@ export function Home() {
         <TabBar active={tab} onSelect={setTab} />
       </div>
       <ConnectionStatus />
+      {adminOpen && <Admin onClose={() => setAdminOpen(false)} />}
     </div>
   );
 }

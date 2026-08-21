@@ -37,6 +37,9 @@ const DEFAULT_PROPS: PropDef[] = [
 
 const season = envSeason("VITE_SEASON", "halloween");
 
+// Bump on each meaningful release; surfaced in the admin panel.
+export const APP_VERSION = "0.7.0";
+
 export const config = {
   fppUrl: envString("VITE_FPP_URL", "http://192.168.1.1"),
   rfBaseUrl: envString("VITE_RF_BASE_URL", "https://remotefalcon.com/remote-falcon-viewer"),
