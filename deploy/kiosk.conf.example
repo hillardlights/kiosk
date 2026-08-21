@@ -1,0 +1,20 @@
+# /boot/kiosk.conf — future runtime configuration (NOT YET WIRED)
+#
+# The current MVP bakes config into the build via .env, requiring
+# `npm run build` to change any value. Eventually this file will live
+# in /boot/ (or /boot/firmware/ on newer Pi OS) so you can edit it
+# from a Windows SD-card reader without SSH-ing in, and the kiosk
+# will read it on boot instead.
+#
+# The eventual runtime flow:
+#   1. Boot-time systemd unit reads /boot/kiosk.conf
+#   2. Converts to JSON at /var/www/kiosk/config.json
+#   3. App fetches /config.json at startup before rendering
+#   4. Values override the compiled-in defaults from .env
+
+VITE_DEMO_MODE=false
+VITE_FPP_URL=http://192.168.5.8
+VITE_RF_SUBDOMAIN=hillardlightshows
+VITE_SEASON=halloween
+VITE_SEASON_YEAR=2026
+VITE_ADMIN_PIN=

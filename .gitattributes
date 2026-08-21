@@ -1,0 +1,7 @@
+# Shell scripts and Linux config files MUST be LF, never CRLF —
+# otherwise bash on the Pi barfs on the shebang and systemd rejects
+# the unit files.
+*.sh          text eol=lf
+*.service     text eol=lf
+*.conf        text eol=lf
+deploy/*      text eol=lf
