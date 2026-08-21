@@ -67,7 +67,7 @@ mounts on any desktop OS). Set at minimum:
 
 ```
 VITE_DEMO_MODE=false
-VITE_FPP_URL=http://192.168.1.XXX
+VITE_FPP_URL=http://192.168.5.8
 VITE_RF_SUBDOMAIN=hillardlightshows
 ```
 
@@ -191,7 +191,7 @@ ls -la /var/www/kiosk/
 FPP isn't reachable from the kiosk's subnet. Verify:
 
 ```bash
-curl -m 5 http://192.168.1.XXX/api/system/status
+curl -m 5 http://192.168.5.8/api/system/status
 ```
 
 If that times out, you have a routing problem, not a kiosk problem.
