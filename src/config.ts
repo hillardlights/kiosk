@@ -1,3 +1,5 @@
+import type { PropDef } from "./state/types";
+
 function envString(key: string, fallback: string): string {
   const value = import.meta.env[key];
   return typeof value === "string" && value.length > 0 ? value : fallback;
@@ -16,9 +18,20 @@ function envBool(key: string, fallback: boolean): boolean {
   return raw === "true" || raw === "1";
 }
 
+// Halloween starter set. Swap `preset` values to match the FPP command
+// preset names on your Pi. Add or remove entries freely; the UI adapts.
+const DEFAULT_PROPS: PropDef[] = [
+  { id: "fog",      label: "Fog Burst",   preset: "KIOSK_PROP_FOG",       emoji: "💨", cooldownSec: 30 },
+  { id: "spider",   label: "Spider Drop", preset: "KIOSK_PROP_SPIDER",    emoji: "🕷", cooldownSec: 45 },
+  { id: "scare",    label: "Jump Scare",  preset: "KIOSK_PROP_SCARE",     emoji: "👻", cooldownSec: 60 },
+  { id: "thunder",  label: "Thunderclap", preset: "KIOSK_PROP_THUNDER",   emoji: "⚡", cooldownSec: 20 },
+  { id: "eyes-on",  label: "Eyes On",     preset: "KIOSK_PROP_EYES_ON",   emoji: "👁", cooldownSec: 5 },
+  { id: "eyes-off", label: "Eyes Off",    preset: "KIOSK_PROP_EYES_OFF",  emoji: "💤", cooldownSec: 5 },
+];
+
 export const config = {
   fppUrl: envString("VITE_FPP_URL", "http://192.168.1.1"),
-  showPlaylist: envString("VITE_SHOW_PLAYLIST", "Hillard Lights"),
+  rfUrl: envString("VITE_RF_URL", "https://hillardlightshows.remotefalcon.com"),
   audioOnPreset: envString("VITE_AUDIO_ON_PRESET", "KIOSK_AUDIO_ON"),
   audioOffPreset: envString("VITE_AUDIO_OFF_PRESET", "KIOSK_AUDIO_OFF"),
   audioDurationSeconds: envNumber("VITE_AUDIO_DURATION_SECONDS", 360),
@@ -26,6 +39,7 @@ export const config = {
   demoMode: envBool("VITE_DEMO_MODE", true),
   demoAudioSeconds: envNumber("VITE_DEMO_AUDIO_SECONDS", 30),
   adminPin: envString("VITE_ADMIN_PIN", ""),
+  props: DEFAULT_PROPS,
 } as const;
 
 export type Config = typeof config;
