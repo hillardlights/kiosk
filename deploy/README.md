@@ -84,6 +84,35 @@ Total time from power-on: ~20 seconds on a Pi 5.
 
 **Update to the latest kiosk code:**
 
+Two ways.
+
+**One-command from your dev machine** (recommended):
+
+```bash
+# From D:\repo\kiosk on your Windows/Mac/Linux dev box:
+./deploy/ship.sh "what I changed"
+
+# Or if you already committed locally:
+./deploy/ship.sh --no-commit
+
+# To also restart Chromium so the kiosk picks up changes without a manual reload:
+./deploy/ship.sh -r "what I changed"
+```
+
+That does: local commit → `git push` → SSH to the Pi → `git pull`
+→ rebuild + redeploy. About 15 seconds end-to-end for a small change.
+
+If your Pi has a different hostname/user, create `.env.ship` in the
+repo root (gitignored):
+
+```
+PI_HOST=my-kiosk.local
+PI_USER=pi
+PI_REPO=/home/pi/kiosk
+```
+
+**Manually on the Pi** (if you're already SSHed in):
+
 ```bash
 cd /home/pi/kiosk
 git pull

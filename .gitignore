@@ -45,6 +45,9 @@ dev-dist
 # local dev-time test. Never commit.
 public/config.json
 
+# Local deploy overrides (Pi hostname/user for deploy/ship.sh)
+.env.ship
+
 # TypeScript incremental build info
 *.tsbuildinfo
 
