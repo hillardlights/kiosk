@@ -1,11 +1,32 @@
 import type { PropDef } from "./state/types";
 
+type RuntimeConfig = Record<string, string | number | boolean | null | undefined>;
+
+function runtimeConfig(): RuntimeConfig {
+  const g = globalThis as unknown as { __KIOSK_RUNTIME_CONFIG__?: RuntimeConfig };
+  return g.__KIOSK_RUNTIME_CONFIG__ ?? {};
+}
+
+// Exposed for the admin panel so the operator can see which values came
+// from /boot/firmware/kiosk.conf vs the compiled-in build defaults.
+export function getRuntimeOverrides(): RuntimeConfig {
+  return runtimeConfig();
+}
+
 function envString(key: string, fallback: string): string {
-  const value = import.meta.env[key];
-  return typeof value === "string" && value.length > 0 ? value : fallback;
+  const rt = runtimeConfig()[key];
+  if (typeof rt === "string" && rt.length > 0) return rt;
+  const build = import.meta.env[key];
+  return typeof build === "string" && build.length > 0 ? build : fallback;
 }
 
 function envNumber(key: string, fallback: number): number {
+  const rt = runtimeConfig()[key];
+  if (typeof rt === "number" && Number.isFinite(rt)) return rt;
+  if (typeof rt === "string" && rt.length > 0) {
+    const n = Number(rt);
+    if (Number.isFinite(n)) return n;
+  }
   const raw = import.meta.env[key];
   if (typeof raw !== "string" || raw.length === 0) return fallback;
   const n = Number(raw);
@@ -13,12 +34,20 @@ function envNumber(key: string, fallback: number): number {
 }
 
 function envBool(key: string, fallback: boolean): boolean {
+  const rt = runtimeConfig()[key];
+  if (typeof rt === "boolean") return rt;
+  if (typeof rt === "string") return rt === "true" || rt === "1";
   const raw = import.meta.env[key];
   if (typeof raw !== "string") return fallback;
   return raw === "true" || raw === "1";
 }
 
-function envSeason(key: string, fallback: "halloween" | "christmas"): "halloween" | "christmas" {
+function envSeason(
+  key: string,
+  fallback: "halloween" | "christmas",
+): "halloween" | "christmas" {
+  const rt = runtimeConfig()[key];
+  if (rt === "halloween" || rt === "christmas") return rt;
   const raw = import.meta.env[key];
   if (raw === "halloween" || raw === "christmas") return raw;
   return fallback;
@@ -38,7 +67,7 @@ const DEFAULT_PROPS: PropDef[] = [
 const season = envSeason("VITE_SEASON", "halloween");
 
 // Bump on each meaningful release; surfaced in the admin panel.
-export const APP_VERSION = "0.7.0";
+export const APP_VERSION = "0.8.0";
 
 export const config = {
   fppUrl: envString("VITE_FPP_URL", "http://192.168.1.1"),

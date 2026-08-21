@@ -1,20 +1,33 @@
-# /boot/kiosk.conf — future runtime configuration (NOT YET WIRED)
+# /boot/firmware/kiosk.conf — runtime overrides for the Hillard Lights
+# kiosk. Copy this file to /boot/firmware/kiosk.conf (or /boot/kiosk.conf
+# on older Pi OS) — that partition is FAT32, so you can also edit it
+# from a Windows or Mac SD-card reader without SSH-ing into the Pi.
 #
-# The current MVP bakes config into the build via .env, requiring
-# `npm run build` to change any value. Eventually this file will live
-# in /boot/ (or /boot/firmware/ on newer Pi OS) so you can edit it
-# from a Windows SD-card reader without SSH-ing in, and the kiosk
-# will read it on boot instead.
+# Values here take precedence over the build-time defaults compiled
+# from .env. After editing:
+#   * reboot the Pi (settings apply on next boot), OR
+#   * SSH in and run `sudo /usr/local/sbin/kiosk-generate-config.sh`
+#     then reload Chromium from the admin panel (7-tap the title,
+#     "Reload kiosk").
 #
-# The eventual runtime flow:
-#   1. Boot-time systemd unit reads /boot/kiosk.conf
-#   2. Converts to JSON at /var/www/kiosk/config.json
-#   3. App fetches /config.json at startup before rendering
-#   4. Values override the compiled-in defaults from .env
+# Lines starting with # are comments; blank lines are ignored.
+# Any key omitted here falls back to the build-time default.
 
+# Master switch: false = talk to real RF + FPP, true = local simulator.
 VITE_DEMO_MODE=false
+
+# Falcon Player REST endpoint on the show LAN.
 VITE_FPP_URL=http://192.168.5.8
+
+# Your Remote Falcon show subdomain (the part before .remotefalcon.com).
 VITE_RF_SUBDOMAIN=hillardlightshows
+
+# Which season the kiosk is currently dressed for.
+# halloween | christmas
 VITE_SEASON=halloween
 VITE_SEASON_YEAR=2026
+
+# PIN gating the admin panel (empty = no PIN required).
+# NOT a real security boundary — anything in this file is trivially
+# readable by anyone with physical access to the SD card.
 VITE_ADMIN_PIN=

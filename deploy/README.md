@@ -52,25 +52,23 @@ sudo ./deploy/install.sh
 The script prints what it's doing at each step. Total time: ~5-10
 minutes depending on your internet.
 
-### 4. Configure the environment
+### 4. Configure runtime settings
+
+The installer seeds `/boot/firmware/kiosk.conf` from
+`deploy/kiosk.conf.example`. Edit it — either by SSH:
 
 ```bash
-cp .env.example .env
-nano .env
+sudo nano /boot/firmware/kiosk.conf
 ```
 
-Set at minimum:
+Or, easier, pop the SD card out and edit `kiosk.conf` from a Windows
+or Mac card reader (the `/boot/firmware` partition is FAT32 and
+mounts on any desktop OS). Set at minimum:
 
 ```
 VITE_DEMO_MODE=false
 VITE_FPP_URL=http://192.168.5.8
 VITE_RF_SUBDOMAIN=hillardlightshows
-```
-
-Then rebuild and re-deploy the app:
-
-```bash
-sudo ./deploy/install.sh --app-only
 ```
 
 ### 5. Reboot into kiosk mode
@@ -95,15 +93,31 @@ sudo ./deploy/install.sh --app-only
 The `--app-only` flag skips reinstalling system packages and just
 rebuilds + redeploys the app.
 
-**Change FPP IP or RF settings:**
+**Change FPP IP, RF subdomain, or any runtime setting:**
+
+Edit `/boot/firmware/kiosk.conf` — either via SSH:
 
 ```bash
-nano /home/pi/kiosk/.env
-sudo ./deploy/install.sh --app-only
+sudo nano /boot/firmware/kiosk.conf
 ```
 
-Then reload Chromium — either reboot the Pi, or from the admin panel
-in the kiosk (7-tap the header, then "Reload kiosk").
+Or by pulling the SD card and editing it on a desktop OS (the boot
+partition is FAT32 and mounts as a regular removable drive). No
+rebuild required.
+
+Then apply:
+
+```bash
+# Option A — full reboot:
+sudo reboot
+
+# Option B — regenerate config, reload chromium from admin panel:
+sudo /usr/local/sbin/kiosk-generate-config.sh
+# then in the kiosk: 7-tap the header, admin → "Reload kiosk"
+```
+
+See `deploy/kiosk.conf.example` for the full list of overridable
+settings.
 
 **Get into the shell over an active kiosk session:**
 
@@ -188,9 +202,6 @@ already handles this — check it's the version being run.
 
 ## What's still MVP
 
-- **Config file at `/boot/kiosk.conf`** (edit from Windows SD-card
-  reader without needing SSH): documented in `kiosk.conf.example`,
-  not yet wired into the app. Follow-up.
 - **Auto-update on WiFi**: no unattended-upgrades or cron pull.
   Ship updates manually with `git pull && ./deploy/install.sh
   --app-only`.

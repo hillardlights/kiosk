@@ -85,6 +85,22 @@ EOF
   install -m 0644 "$REPO_DIR/deploy/nginx-kiosk.conf" /etc/nginx/sites-available/kiosk
   rm -f /etc/nginx/sites-enabled/default
   ln -sf /etc/nginx/sites-available/kiosk /etc/nginx/sites-enabled/kiosk
+
+  log "Installing runtime config generator + systemd unit"
+  install -m 0755 "$REPO_DIR/deploy/generate-config.sh" /usr/local/sbin/kiosk-generate-config.sh
+  install -m 0644 "$REPO_DIR/deploy/kiosk-config.service" /etc/systemd/system/kiosk-config.service
+  systemctl daemon-reload
+  systemctl enable kiosk-config.service
+
+  if [[ ! -e /boot/firmware/kiosk.conf && ! -e /boot/kiosk.conf ]]; then
+    log "Seeding /boot/firmware/kiosk.conf from deploy/kiosk.conf.example"
+    if [[ -d /boot/firmware ]]; then
+      install -m 0644 "$REPO_DIR/deploy/kiosk.conf.example" /boot/firmware/kiosk.conf
+    else
+      install -m 0644 "$REPO_DIR/deploy/kiosk.conf.example" /boot/kiosk.conf
+    fi
+    echo "  → edit that file to point at your real FPP + RF settings"
+  fi
 fi
 
 log "Preparing web root at $WEB_ROOT"
@@ -106,6 +122,9 @@ log "Deploying built assets to $WEB_ROOT"
 rm -rf "$WEB_ROOT"/*
 cp -r "$REPO_DIR/dist"/* "$WEB_ROOT/"
 chown -R www-data:www-data "$WEB_ROOT"
+
+log "Regenerating /config.json from kiosk.conf"
+/usr/local/sbin/kiosk-generate-config.sh || echo "warn: config generator failed; using empty overrides"
 
 log "Reloading nginx"
 nginx -t

@@ -41,6 +41,10 @@ dev-dist
 # Vite
 *.local
 
+# Runtime kiosk overrides — either an operator's actual config or a
+# local dev-time test. Never commit.
+public/config.json
+
 # TypeScript incremental build info
 *.tsbuildinfo
 

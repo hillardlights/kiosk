@@ -1,0 +1,17 @@
+[Unit]
+Description=Generate kiosk /config.json from /boot/firmware/kiosk.conf
+DefaultDependencies=no
+Before=nginx.service
+After=local-fs.target
+Wants=local-fs.target
+RequiresMountsFor=/boot/firmware /var/www
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/sbin/kiosk-generate-config.sh
+RemainAfterExit=no
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target

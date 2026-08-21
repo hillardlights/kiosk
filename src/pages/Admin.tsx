@@ -1,6 +1,6 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { PinGate } from "../components/admin/PinGate";
-import { APP_VERSION, config } from "../config";
+import { APP_VERSION, config, getRuntimeOverrides } from "../config";
 import { useKiosk } from "../hooks/useKiosk";
 import { clearAudioExpiry } from "../services/audioTimer";
 import * as fpp from "../services/fpp";
@@ -56,6 +56,8 @@ function AdminOverlay({
 function AdminContent({ onClose }: { onClose: () => void }) {
   const { state, actions } = useKiosk();
   const [swStatus, setSwStatus] = useState<"unknown" | "ready" | "none">("unknown");
+  const runtimeOverrides = useMemo(() => getRuntimeOverrides(), []);
+  const overrideKeys = Object.keys(runtimeOverrides);
 
   useEffect(() => {
     if (!("serviceWorker" in navigator)) {
@@ -140,16 +142,34 @@ function AdminContent({ onClose }: { onClose: () => void }) {
       <Section title="Configuration">
         <div className="grid grid-cols-1 gap-2 text-sm">
           <KV k="Version" v={APP_VERSION} />
-          <KV k="Demo mode" v={config.demoMode ? "ON" : "off"} />
-          <KV k="FPP URL" v={config.fppUrl} />
-          <KV k="RF API" v={config.rfBaseUrl} />
-          <KV k="RF subdomain" v={config.rfSubdomain} />
-          <KV k="Season" v={`${config.brand.seasonLabel} ${config.brand.seasonYear}`} />
-          <KV k="Audio duration" v={`${config.audioDurationSeconds}s`} />
-          <KV k="Admin PIN" v={config.adminPin ? "set" : "not set"} />
+          <KV k="Demo mode" v={config.demoMode ? "ON" : "off"} highlight={overrideKeys.includes("VITE_DEMO_MODE")} />
+          <KV k="FPP URL" v={config.fppUrl} highlight={overrideKeys.includes("VITE_FPP_URL")} />
+          <KV k="RF API" v={config.rfBaseUrl} highlight={overrideKeys.includes("VITE_RF_BASE_URL")} />
+          <KV k="RF subdomain" v={config.rfSubdomain} highlight={overrideKeys.includes("VITE_RF_SUBDOMAIN")} />
+          <KV k="Season" v={`${config.brand.seasonLabel} ${config.brand.seasonYear}`} highlight={overrideKeys.includes("VITE_SEASON") || overrideKeys.includes("VITE_SEASON_YEAR")} />
+          <KV k="Audio duration" v={`${config.audioDurationSeconds}s`} highlight={overrideKeys.includes("VITE_AUDIO_DURATION_SECONDS")} />
+          <KV k="Admin PIN" v={config.adminPin ? "set" : "not set"} highlight={overrideKeys.includes("VITE_ADMIN_PIN")} />
           <KV k="RF poll" v={`${config.rfPollMs}ms`} />
           <KV k="RF presence" v={`${config.rfPresenceMs}ms`} />
         </div>
+        <p className="mt-4 text-[0.65rem] text-neutral-500">
+          <span className="mr-1 inline-block h-2 w-2 rounded-full bg-orange-400 align-middle" />
+          Highlighted values come from /boot/firmware/kiosk.conf; others are compiled-in defaults.
+        </p>
+      </Section>
+
+      <Section title="Runtime overrides (/config.json)">
+        {overrideKeys.length === 0 ? (
+          <p className="text-sm text-neutral-400">
+            No /config.json overrides active. Build-time .env values in effect.
+          </p>
+        ) : (
+          <div className="grid grid-cols-1 gap-2 text-sm">
+            {overrideKeys.sort().map((k) => (
+              <KV k={k} v={String(runtimeOverrides[k])} />
+            ))}
+          </div>
+        )}
       </Section>
 
       <Section title="Kiosk actions" tone="danger">
@@ -249,10 +269,18 @@ function Cell({
   );
 }
 
-function KV({ k, v }: { k: string; v: string }) {
+function KV({ k, v, highlight = false }: { k: string; v: string; highlight?: boolean }) {
   return (
     <div className="flex items-center justify-between gap-4 border-b border-white/5 py-2 last:border-b-0">
-      <span className="text-neutral-400">{k}</span>
+      <span className="flex items-center gap-2 text-neutral-400">
+        {highlight ? (
+          <span
+            className="inline-block h-2 w-2 shrink-0 rounded-full bg-orange-400"
+            title="Overridden by /boot/firmware/kiosk.conf"
+          />
+        ) : null}
+        {k}
+      </span>
       <span className="truncate font-mono text-neutral-200">{v}</span>
     </div>
   );
