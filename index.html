@@ -3,6 +3,8 @@
   <head>
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="mask-icon" href="/favicon.svg" color="#f97316" />
+    <link rel="apple-touch-icon" href="/favicon.svg" />
     <meta
       name="viewport"
       content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover"
@@ -10,10 +12,69 @@
     <meta name="theme-color" content="#0a0a0a" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="Hillard Lights" />
     <title>Hillard Lights</title>
+    <style>
+      /* Pre-mount splash. Rendered by the browser before React boots so
+         there is no white flash between HTML paint and app render.
+         React's createRoot().render() replaces #root's contents on mount,
+         which naturally removes this. */
+      html, body {
+        margin: 0;
+        background: #0a0a0a;
+        color: #f5f5f5;
+        height: 100%;
+        font-family: "Inter", ui-sans-serif, system-ui, -apple-system, sans-serif;
+        overscroll-behavior: none;
+      }
+      #root {
+        min-height: 100dvh;
+      }
+      .splash {
+        min-height: 100dvh;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 0.75rem;
+        background: radial-gradient(ellipse at top, rgba(88,28,135,0.25), transparent 60%),
+                    radial-gradient(ellipse at bottom, rgba(194,65,12,0.25), transparent 60%),
+                    #0a0a0a;
+      }
+      .splash-word {
+        display: flex;
+        align-items: baseline;
+        gap: 0.75rem;
+        font-size: clamp(1.75rem, 5vw, 3rem);
+        font-weight: 900;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: #f97316;
+        text-shadow: 0 0 24px rgba(249,115,22,0.4);
+      }
+      .splash-emoji {
+        font-size: 0.9em;
+      }
+      .splash-sub {
+        font-size: 0.7rem;
+        font-weight: 700;
+        letter-spacing: 0.5em;
+        text-transform: uppercase;
+        color: rgba(249, 115, 22, 0.6);
+      }
+    </style>
   </head>
   <body>
-    <div id="root"></div>
+    <div id="root">
+      <div class="splash">
+        <div class="splash-word">
+          <span class="splash-emoji">🎃</span>
+          <span>Hillard Lights</span>
+          <span class="splash-emoji">🎃</span>
+        </div>
+        <div class="splash-sub">Loading show</div>
+      </div>
+    </div>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>

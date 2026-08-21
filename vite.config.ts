@@ -12,8 +12,13 @@ export default defineConfig({
       injectRegister: "auto",
       workbox: {
         globPatterns: ["**/*.{js,css,html,svg,png,ico,woff2}"],
+        // SPA fallback so any route serves index.html from cache when offline.
+        navigateFallback: "/index.html",
+        // Don't try to precache huge maps; keeps the SW light.
+        maximumFileSizeToCacheInBytes: 3 * 1024 * 1024,
       },
       manifest: {
+        id: "/",
         name: "Hillard Lights",
         short_name: "Hillard Lights",
         description: "Outdoor kiosk for the Hillard Lights Halloween show.",
@@ -21,17 +26,21 @@ export default defineConfig({
         background_color: "#0a0a0a",
         display: "standalone",
         orientation: "portrait",
+        scope: "/",
         start_url: "/",
+        categories: ["entertainment"],
         icons: [
           {
-            src: "/icon-192.png",
-            sizes: "192x192",
-            type: "image/png",
+            src: "/favicon.svg",
+            sizes: "any",
+            type: "image/svg+xml",
+            purpose: "any",
           },
           {
-            src: "/icon-512.png",
-            sizes: "512x512",
-            type: "image/png",
+            src: "/favicon.svg",
+            sizes: "any",
+            type: "image/svg+xml",
+            purpose: "maskable",
           },
         ],
       },
