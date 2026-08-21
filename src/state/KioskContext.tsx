@@ -8,6 +8,12 @@ import {
   type ReactNode,
 } from "react";
 import { config } from "../config";
+import {
+  clearAudioExpiry,
+  persistAudioExpiry,
+  readAudioExpiry,
+  remainingFromExpiry,
+} from "../services/audioTimer";
 import * as fpp from "../services/fpp";
 import * as rf from "../services/rf";
 import { getOrCreateViewerId } from "../services/viewerId";
@@ -46,7 +52,7 @@ type Action =
   | { type: "song/advance" }
   | { type: "song/tick"; elapsedSec: number }
   | { type: "song/feedback"; feedback: SongFeedback | null }
-  | { type: "audio/set"; state: AudioState; remainingSec?: number }
+  | { type: "audio/set"; state: AudioState; remainingSec?: number; expiresAt?: number | null }
   | { type: "audio/tick"; remainingSec: number }
   | { type: "prop/cooldown"; propId: string; until: number }
   | { type: "prop/ready"; propId: string }
@@ -94,11 +100,20 @@ function initialState(): KioskState {
         queuedByKiosk: false,
       }
     : null;
+
+  // If we're mid-audio-session at boot (persisted expiry still in the future),
+  // resume with the correct remaining time. Expired timestamps are handled by
+  // a mount effect that fires the OFF preset for safety.
+  const persistedExpiry = readAudioExpiry();
+  const now = Date.now();
+  const resumedActive = persistedExpiry != null && persistedExpiry > now;
+
   return {
     fppConnection: inDemo ? "online" : "connecting",
     rfConnection: inDemo ? "online" : "connecting",
-    audio: "off",
-    audioRemainingSec: 0,
+    audio: resumedActive ? "active" : "off",
+    audioExpiresAt: resumedActive ? persistedExpiry : null,
+    audioRemainingSec: resumedActive ? remainingFromExpiry(persistedExpiry, now) : 0,
     nowPlaying: firstUp,
     queue: inDemo ? [...DEMO_INITIAL_QUEUE] : [],
     availableSongs: inDemo ? DEMO_SONGS : [],
@@ -208,6 +223,8 @@ function reducer(state: KioskState, action: Action): KioskState {
         ...state,
         audio: action.state,
         audioRemainingSec: action.remainingSec ?? state.audioRemainingSec,
+        audioExpiresAt:
+          action.expiresAt !== undefined ? action.expiresAt : state.audioExpiresAt,
       };
     case "audio/tick":
       return { ...state, audioRemainingSec: Math.max(0, action.remainingSec) };
@@ -424,7 +441,15 @@ export function KioskProvider({ children }: { children: ReactNode }) {
 
     if (config.demoMode) {
       window.setTimeout(() => {
-        dispatch({ type: "audio/set", state: "active", remainingSec: config.demoAudioSeconds });
+        const durationSec = config.demoAudioSeconds;
+        const expiresAt = Date.now() + durationSec * 1000;
+        persistAudioExpiry(expiresAt);
+        dispatch({
+          type: "audio/set",
+          state: "active",
+          remainingSec: durationSec,
+          expiresAt,
+        });
         audioBusyRef.current = false;
       }, 500);
       return;
@@ -432,15 +457,19 @@ export function KioskProvider({ children }: { children: ReactNode }) {
 
     const result = await fpp.triggerPreset(config.audioOnPreset);
     if (result.ok) {
+      const durationSec = config.audioDurationSeconds;
+      const expiresAt = Date.now() + durationSec * 1000;
+      persistAudioExpiry(expiresAt);
       dispatch({
         type: "audio/set",
         state: "active",
-        remainingSec: config.audioDurationSeconds,
+        remainingSec: durationSec,
+        expiresAt,
       });
       dispatch({ type: "connection/fpp", state: "online" });
     } else {
       // Revert cleanly — audio isn't actually on if we couldn't tell FPP.
-      dispatch({ type: "audio/set", state: "off", remainingSec: 0 });
+      dispatch({ type: "audio/set", state: "off", remainingSec: 0, expiresAt: null });
       if (result.error.kind === "network") {
         dispatch({ type: "connection/fpp", state: "offline" });
       }
@@ -453,10 +482,13 @@ export function KioskProvider({ children }: { children: ReactNode }) {
     if (audioBusyRef.current) return;
     audioBusyRef.current = true;
     dispatch({ type: "audio/set", state: "stopping" });
+    // Clear the persisted expiry immediately so a reload during OFF-in-flight
+    // doesn't re-resume as "active".
+    clearAudioExpiry();
 
     if (config.demoMode) {
       window.setTimeout(() => {
-        dispatch({ type: "audio/set", state: "off", remainingSec: 0 });
+        dispatch({ type: "audio/set", state: "off", remainingSec: 0, expiresAt: null });
         audioBusyRef.current = false;
       }, 300);
       return;
@@ -473,8 +505,23 @@ export function KioskProvider({ children }: { children: ReactNode }) {
     } else {
       dispatch({ type: "connection/fpp", state: "online" });
     }
-    dispatch({ type: "audio/set", state: "off", remainingSec: 0 });
+    dispatch({ type: "audio/set", state: "off", remainingSec: 0, expiresAt: null });
     audioBusyRef.current = false;
+  }, []);
+
+  // On mount: if a persisted audio expiry exists and has already passed,
+  // fire the OFF preset for safety and clear the stored value. The kiosk
+  // was dead when the timer would have expired, so this is our chance to
+  // catch up. FPP's own 6-min safety is still the ultimate backstop.
+  useEffect(() => {
+    const persisted = readAudioExpiry();
+    if (persisted == null) return;
+    if (persisted > Date.now()) return; // still valid — initialState resumed it
+    clearAudioExpiry();
+    if (!config.demoMode) {
+      void fpp.triggerPreset(config.audioOffPreset).catch(() => {});
+    }
+    console.info("[audio] cleared stale expiry on boot");
   }, []);
 
   // Auto-clear prop errors after a few seconds.
@@ -605,16 +652,17 @@ export function KioskProvider({ children }: { children: ReactNode }) {
     return () => window.clearInterval(id);
   }, [state.nowPlaying?.song.name]);
 
-  // Audio countdown — when it hits zero, fire the OFF preset for real.
-  // Phase 6 replaces this with an absolute-timestamp + localStorage impl.
+  // Audio countdown driven by the absolute expiration timestamp — no drift,
+  // no dependence on the tab staying awake, self-heals on reload via the
+  // resume path in initialState.
   const audioOffRef = useRef(audioOff);
   audioOffRef.current = audioOff;
 
   useEffect(() => {
-    if (state.audio !== "active") return;
-    const expiresAt = Date.now() + state.audioRemainingSec * 1000;
+    if (state.audio !== "active" || state.audioExpiresAt == null) return;
+    const expiresAt = state.audioExpiresAt;
     const id = window.setInterval(() => {
-      const remaining = Math.max(0, Math.ceil((expiresAt - Date.now()) / 1000));
+      const remaining = remainingFromExpiry(expiresAt);
       dispatch({ type: "audio/tick", remainingSec: remaining });
       if (remaining <= 0) {
         window.clearInterval(id);
@@ -622,7 +670,7 @@ export function KioskProvider({ children }: { children: ReactNode }) {
       }
     }, 250);
     return () => window.clearInterval(id);
-  }, [state.audio]);
+  }, [state.audio, state.audioExpiresAt]);
 
   // Prop cooldown watcher.
   useEffect(() => {

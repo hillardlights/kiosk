@@ -58,6 +58,10 @@ export type KioskState = {
   fppConnection: ConnectionState;
   rfConnection: ConnectionState;
   audio: AudioState;
+  // Absolute ms-since-epoch timestamp when audio auto-off fires.
+  // Null when audio is off or transitioning. Persisted to localStorage
+  // so the countdown survives browser reloads.
+  audioExpiresAt: number | null;
   audioRemainingSec: number;
   nowPlaying: NowPlaying | null;
   queue: QueueItem[];
