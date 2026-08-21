@@ -4,9 +4,6 @@ export type AudioState = "off" | "starting" | "active" | "stopping" | "error";
 
 export type ViewerControlMode = "JUKEBOX" | "VOTING";
 
-// `name` is the sequence identifier RF/FPP use internally; `displayName` is
-// what the visitor sees. When RF omits displayName, callers should fall back
-// to name.
 export type Song = {
   name: string;
   displayName: string;
@@ -41,14 +38,12 @@ export type PropRuntime = {
   lastError: string | null;
 };
 
-export type TabId = "songs" | "props" | "audio";
+export type TabId = "songs" | "props" | "audio" | "follow";
 
 export type SongFeedback =
   | { kind: "queued"; songName: string; at: number }
   | { kind: "error"; songName: string; message: string; at: number };
 
-// Mirror of the RF preferences the kiosk cares about. jukeboxDepth === 0
-// means unlimited per RF's own semantics.
 export type ShowStatus = {
   showEnabled: boolean;
   showName: string | null;
@@ -70,7 +65,5 @@ export type KioskState = {
   props: Record<string, PropRuntime>;
   showStatus: ShowStatus;
   songFeedback: SongFeedback | null;
-  // Song names the kiosk has queued that are still pending in RF's queue.
-  // Pruned on each rf/sync as items exit the queue.
   kioskQueuedSongs: string[];
 };

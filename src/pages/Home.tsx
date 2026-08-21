@@ -2,6 +2,7 @@ import { useState } from "react";
 import { AudioPanel } from "../components/AudioPanel";
 import { BackgroundFX } from "../components/BackgroundFX";
 import { ConnectionStatus } from "../components/ConnectionStatus";
+import { FollowPanel } from "../components/FollowPanel";
 import { Header } from "../components/Header";
 import { NowPlayingBar } from "../components/NowPlayingBar";
 import { PropPanel } from "../components/PropPanel";
@@ -22,6 +23,7 @@ export function Home() {
           {tab === "songs" && <SongPicker />}
           {tab === "props" && <PropPanel />}
           {tab === "audio" && <AudioPanel />}
+          {tab === "follow" && <FollowPanel />}
         </main>
         <TabBar active={tab} onSelect={setTab} />
       </div>
