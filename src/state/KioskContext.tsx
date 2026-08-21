@@ -26,6 +26,7 @@ import type {
   ShowStatus,
   Song,
   SongFeedback,
+  ViewerControlMode,
 } from "./types";
 
 type RfSnapshot = {
@@ -57,6 +58,29 @@ function buildInitialProps(): Record<string, PropRuntime> {
   return out;
 }
 
+function initialShowStatus(inDemo: boolean): ShowStatus {
+  if (inDemo) {
+    return {
+      showEnabled: true,
+      showName: "Hillard Lights (demo)",
+      mode: "JUKEBOX",
+      jukeboxDepth: 5,
+      jukeboxRequestLimit: 2,
+      checkIfRequested: false,
+      locationCheckMethod: null,
+    };
+  }
+  return {
+    showEnabled: false,
+    showName: null,
+    mode: null,
+    jukeboxDepth: 0,
+    jukeboxRequestLimit: 0,
+    checkIfRequested: false,
+    locationCheckMethod: null,
+  };
+}
+
 function initialState(): KioskState {
   const inDemo = config.demoMode;
   const firstUp: NowPlaying | null = inDemo
@@ -76,12 +100,9 @@ function initialState(): KioskState {
     queue: inDemo ? [...DEMO_INITIAL_QUEUE] : [],
     availableSongs: inDemo ? DEMO_SONGS : [],
     props: buildInitialProps(),
-    showStatus: {
-      showEnabled: inDemo,
-      showName: inDemo ? "Hillard Lights (demo)" : null,
-      mode: inDemo ? "JUKEBOX" : null,
-    },
+    showStatus: initialShowStatus(inDemo),
     songFeedback: null,
+    kioskQueuedSongs: [],
   };
 }
 
@@ -100,19 +121,34 @@ function reducer(state: KioskState, action: Action): KioskState {
           ? { ...incoming, elapsedSec: state.nowPlaying.elapsedSec }
           : { ...incoming, elapsedSec: 0 }
         : null;
+      // Prune kiosk-queued songs that have exited RF's queue. If a song
+      // moved from queue to now-playing it's no longer "queued" per RF's
+      // rule chain — the kiosk is free to submit another.
+      const stillQueued = new Set(action.snapshot.queue.map((q) => q.song.name));
+      const nextKioskQueued = state.kioskQueuedSongs.filter((n) => stillQueued.has(n));
       return {
         ...state,
         availableSongs: action.snapshot.availableSongs,
         queue: action.snapshot.queue,
         nowPlaying: merged,
         showStatus: action.snapshot.showStatus,
+        kioskQueuedSongs: nextKioskQueued,
       };
     }
-    case "song/queue-optimistic":
-      return { ...state, queue: [...state.queue, action.item] };
+    case "song/queue-optimistic": {
+      const alreadyTracked = state.kioskQueuedSongs.includes(action.item.song.name);
+      return {
+        ...state,
+        queue: [...state.queue, action.item],
+        kioskQueuedSongs: alreadyTracked
+          ? state.kioskQueuedSongs
+          : [...state.kioskQueuedSongs, action.item.song.name],
+      };
+    }
     case "song/advance": {
       const [next, ...rest] = state.queue;
       if (!next) return { ...state, nowPlaying: null };
+      const nextKioskQueued = state.kioskQueuedSongs.filter((n) => n !== next.song.name);
       return {
         ...state,
         nowPlaying: {
@@ -122,6 +158,7 @@ function reducer(state: KioskState, action: Action): KioskState {
           queuedByKiosk: false,
         },
         queue: rest,
+        kioskQueuedSongs: nextKioskQueued,
       };
     }
     case "song/tick": {
@@ -179,6 +216,11 @@ function reducer(state: KioskState, action: Action): KioskState {
   }
 }
 
+function normalizeMode(raw: string | null | undefined): ViewerControlMode | null {
+  if (raw === "JUKEBOX" || raw === "VOTING") return raw;
+  return null;
+}
+
 function snapshotFromRf(show: rf.RfShow): RfSnapshot {
   const availableSongs: Song[] = show.sequences
     .filter((s) => s.active)
@@ -228,10 +270,15 @@ function snapshotFromRf(show: rf.RfShow): RfSnapshot {
       }
     : null;
 
+  const prefs = show.preferences;
   const showStatus: ShowStatus = {
-    showEnabled: show.preferences?.viewerControlEnabled ?? true,
+    showEnabled: prefs?.viewerControlEnabled ?? false,
     showName: show.showName,
-    mode: show.preferences?.viewerControlMode ?? null,
+    mode: normalizeMode(prefs?.viewerControlMode),
+    jukeboxDepth: prefs?.jukeboxDepth ?? 0,
+    jukeboxRequestLimit: prefs?.jukeboxRequestLimit ?? 0,
+    checkIfRequested: prefs?.checkIfRequested ?? false,
+    locationCheckMethod: prefs?.locationCheckMethod ?? null,
   };
 
   return { availableSongs, queue, nowPlaying, showStatus };
@@ -279,7 +326,6 @@ export function KioskProvider({ children }: { children: ReactNode }) {
 
     const result = await rf.addSequenceToQueue(songName, viewerIdRef.current ?? "kiosk");
     if (result.ok) {
-      // Optimistic add — the next getShow poll will bring the authoritative queue.
       dispatch({
         type: "song/queue-optimistic",
         item: { position: state.queue.length + 1, song },
@@ -336,7 +382,6 @@ export function KioskProvider({ children }: { children: ReactNode }) {
     }, 300);
   }, []);
 
-  // Auto-dismiss song feedback after 2.5s.
   useEffect(() => {
     if (!state.songFeedback) return;
     const id = window.setTimeout(() => {
@@ -345,7 +390,6 @@ export function KioskProvider({ children }: { children: ReactNode }) {
     return () => window.clearTimeout(id);
   }, [state.songFeedback]);
 
-  // RF sync loop — skipped in demo mode.
   useEffect(() => {
     if (config.demoMode) return;
 
@@ -380,7 +424,6 @@ export function KioskProvider({ children }: { children: ReactNode }) {
     };
   }, []);
 
-  // Presence heartbeat — best-effort, ignores failures.
   useEffect(() => {
     if (config.demoMode) return;
     const viewerId = viewerIdRef.current ?? "kiosk";
@@ -391,7 +434,6 @@ export function KioskProvider({ children }: { children: ReactNode }) {
     return () => window.clearInterval(id);
   }, []);
 
-  // Now-playing local ticker for the progress bar.
   useEffect(() => {
     if (!state.nowPlaying) return;
     const duration = state.nowPlaying.durationSec;
@@ -408,7 +450,6 @@ export function KioskProvider({ children }: { children: ReactNode }) {
     return () => window.clearInterval(id);
   }, [state.nowPlaying?.song.name, state.nowPlaying?.durationSec]);
 
-  // Audio countdown (naive placeholder; Phase 6 gives it absolute-timestamp + persistence).
   useEffect(() => {
     if (state.audio !== "active") return;
     const expiresAt = Date.now() + state.audioRemainingSec * 1000;
@@ -423,7 +464,6 @@ export function KioskProvider({ children }: { children: ReactNode }) {
     return () => window.clearInterval(id);
   }, [state.audio]);
 
-  // Prop cooldown watcher.
   useEffect(() => {
     const anyOnCooldown = Object.values(state.props).some(
       (p) => p.cooldownUntil !== null,

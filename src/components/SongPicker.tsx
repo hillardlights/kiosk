@@ -1,6 +1,6 @@
 import { useMemo } from "react";
 import { useKiosk } from "../hooks/useKiosk";
-import type { QueueItem } from "../state/types";
+import type { QueueItem, ShowStatus } from "../state/types";
 
 export function SongPicker() {
   const { state, actions } = useKiosk();
@@ -9,19 +9,30 @@ export function SongPicker() {
     () => new Set(state.queue.map((q) => q.song.name)),
     [state.queue],
   );
+  const kioskQueuedSet = useMemo(
+    () => new Set(state.kioskQueuedSongs),
+    [state.kioskQueuedSongs],
+  );
   const currentSongName = state.nowPlaying?.song.name;
   const offline = state.rfConnection !== "online";
   const showDisabled = !state.showStatus.showEnabled;
+  const votingMode = state.showStatus.mode === "VOTING";
+  const queueFull = isQueueFull(state.showStatus, state.queue.length);
+  const kioskLocked =
+    state.showStatus.checkIfRequested && state.kioskQueuedSongs.length > 0;
   const feedback = state.songFeedback;
 
+  // Anything that prevents tapping any song
+  const globalBlock = offline || showDisabled || votingMode;
+
   const onTap = (songName: string) => {
-    if (offline || showDisabled) return;
+    if (globalBlock || queueFull || kioskLocked) return;
     void actions.queueSong(songName);
   };
 
   return (
     <div className="flex h-full min-h-0 flex-col gap-4">
-      <QueueSummary queue={state.queue} />
+      <QueueSummary queue={state.queue} showStatus={state.showStatus} />
 
       {offline ? (
         <Banner
@@ -35,6 +46,24 @@ export function SongPicker() {
           label="Show is currently off"
           body="Song requests will open when the show turns on."
         />
+      ) : votingMode ? (
+        <Banner
+          tone="warn"
+          label="Voting mode active"
+          body="Song selection on the kiosk supports jukebox mode only. Use the QR code to vote."
+        />
+      ) : queueFull ? (
+        <Banner
+          tone="warn"
+          label="Queue is full"
+          body={`Wait for a song to finish — up to ${state.showStatus.jukeboxDepth} can be queued at a time.`}
+        />
+      ) : kioskLocked ? (
+        <Banner
+          tone="warn"
+          label="One request at a time"
+          body={`Wait for ${kioskLockedSongName(state.kioskQueuedSongs)} to play before adding another.`}
+        />
       ) : null}
 
       <div className="min-h-0 flex-1 overflow-y-auto pr-1 pb-4">
@@ -47,16 +76,23 @@ export function SongPicker() {
           {state.availableSongs.map((song) => {
             const isCurrent = song.name === currentSongName;
             const isQueued = queuedSongNames.has(song.name);
+            const kioskQueued = kioskQueuedSet.has(song.name);
             const flash =
               feedback && feedback.songName === song.name ? feedback : null;
             const flashKind = flash?.kind;
+            const disabled =
+              globalBlock ||
+              queueFull ||
+              kioskLocked ||
+              isCurrent ||
+              isQueued;
 
             return (
               <li key={song.name}>
                 <button
                   type="button"
                   onClick={() => onTap(song.name)}
-                  disabled={offline || showDisabled || isCurrent}
+                  disabled={disabled}
                   className={
                     "song-row group w-full rounded-2xl border px-5 py-4 text-left transition " +
                     "active:scale-[0.99] disabled:opacity-70 " +
@@ -66,9 +102,11 @@ export function SongPicker() {
                         ? "border-emerald-400/60 bg-emerald-500/15"
                         : flashKind === "error"
                           ? "border-rose-400/60 bg-rose-500/15"
-                          : isQueued
-                            ? "border-purple-400/40 bg-purple-500/10"
-                            : "border-white/10 bg-white/[0.04] hover:bg-white/[0.07]")
+                          : kioskQueued
+                            ? "border-emerald-400/40 bg-emerald-500/10"
+                            : isQueued
+                              ? "border-purple-400/40 bg-purple-500/10"
+                              : "border-white/10 bg-white/[0.04] hover:bg-white/[0.07]")
                   }
                 >
                   <div className="flex items-center gap-4">
@@ -91,6 +129,8 @@ export function SongPicker() {
                           <span className="text-emerald-300">Queued!</span>
                         ) : flashKind === "error" ? (
                           <span className="text-rose-300">Try again</span>
+                        ) : kioskQueued ? (
+                          <span className="text-emerald-300">Your request</span>
                         ) : isQueued ? (
                           <span className="text-purple-300">In queue</span>
                         ) : (
@@ -109,21 +149,52 @@ export function SongPicker() {
   );
 }
 
-function QueueSummary({ queue }: { queue: QueueItem[] }) {
+function isQueueFull(status: ShowStatus, currentLength: number): boolean {
+  if (status.jukeboxDepth <= 0) return false; // 0 means unlimited per RF
+  return currentLength >= status.jukeboxDepth;
+}
+
+function kioskLockedSongName(kioskQueued: string[]): string {
+  const first = kioskQueued[0];
+  return first ?? "your song";
+}
+
+function QueueSummary({
+  queue,
+  showStatus,
+}: {
+  queue: QueueItem[];
+  showStatus: ShowStatus;
+}) {
+  const cap = showStatus.jukeboxDepth > 0 ? showStatus.jukeboxDepth : null;
+  const capacityLabel = cap != null ? `${queue.length} / ${cap}` : `${queue.length}`;
+
   if (queue.length === 0) {
     return (
-      <div className="rounded-2xl border border-white/8 bg-black/40 px-4 py-3 text-center text-sm text-neutral-400">
-        Queue is empty — you're next up!
+      <div className="rounded-2xl border border-white/8 bg-black/40 px-4 py-3">
+        <div className="flex items-center justify-between">
+          <p className="text-[0.65rem] font-semibold uppercase tracking-[0.4em] text-neutral-500">
+            Queue
+          </p>
+          <p className="font-mono text-xs text-neutral-500">{capacityLabel}</p>
+        </div>
+        <p className="mt-1 text-center text-sm text-neutral-400">
+          Queue is empty — you're next up!
+        </p>
       </div>
     );
   }
+
   const upNext = queue[0]!;
   const rest = queue.length - 1;
   return (
     <div className="rounded-2xl border border-purple-500/25 bg-purple-950/30 px-4 py-3">
-      <p className="text-[0.65rem] font-semibold uppercase tracking-[0.4em] text-purple-300/80">
-        Up next
-      </p>
+      <div className="flex items-center justify-between">
+        <p className="text-[0.65rem] font-semibold uppercase tracking-[0.4em] text-purple-300/80">
+          Up next
+        </p>
+        <p className="font-mono text-xs text-purple-200/80">{capacityLabel}</p>
+      </div>
       <p className="mt-1 truncate text-lg font-semibold text-white">{upNext.song.displayName}</p>
       {rest > 0 ? (
         <p className="text-xs text-neutral-400">+ {rest} more in the queue</p>
