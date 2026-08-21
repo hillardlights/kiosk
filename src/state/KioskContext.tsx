@@ -8,6 +8,7 @@ import {
   type ReactNode,
 } from "react";
 import { config } from "../config";
+import * as fpp from "../services/fpp";
 import * as rf from "../services/rf";
 import { getOrCreateViewerId } from "../services/viewerId";
 import {
@@ -48,7 +49,8 @@ type Action =
   | { type: "audio/tick"; remainingSec: number }
   | { type: "prop/cooldown"; propId: string; until: number }
   | { type: "prop/ready"; propId: string }
-  | { type: "prop/error"; propId: string; message: string };
+  | { type: "prop/error"; propId: string; message: string }
+  | { type: "prop/clear-error"; propId: string };
 
 function buildInitialProps(): Record<string, PropRuntime> {
   const out: Record<string, PropRuntime> = {};
@@ -113,17 +115,12 @@ function reducer(state: KioskState, action: Action): KioskState {
     case "connection/rf":
       return { ...state, rfConnection: action.state };
     case "rf/sync": {
-      // Preserve client-side elapsedSec while the same song is playing —
-      // RF doesn't report elapsed, so we tick locally between song changes.
       const incoming = action.snapshot.nowPlaying;
       const merged: NowPlaying | null = incoming
         ? state.nowPlaying && state.nowPlaying.song.name === incoming.song.name
           ? { ...incoming, elapsedSec: state.nowPlaying.elapsedSec }
           : { ...incoming, elapsedSec: 0 }
         : null;
-      // Prune kiosk-queued songs that have exited RF's queue. If a song
-      // moved from queue to now-playing it's no longer "queued" per RF's
-      // rule chain — the kiosk is free to submit another.
       const stillQueued = new Set(action.snapshot.queue.map((q) => q.song.name));
       const nextKioskQueued = state.kioskQueuedSongs.filter((n) => stillQueued.has(n));
       return {
@@ -211,6 +208,17 @@ function reducer(state: KioskState, action: Action): KioskState {
         },
       };
     }
+    case "prop/clear-error": {
+      const existing = state.props[action.propId];
+      if (!existing || existing.lastError === null) return state;
+      return {
+        ...state,
+        props: {
+          ...state.props,
+          [action.propId]: { ...existing, lastError: null },
+        },
+      };
+    }
     default:
       return state;
   }
@@ -286,9 +294,9 @@ function snapshotFromRf(show: rf.RfShow): RfSnapshot {
 
 type KioskActions = {
   queueSong: (songName: string) => Promise<void>;
-  triggerProp: (propId: string) => void;
-  audioOn: () => void;
-  audioOff: () => void;
+  triggerProp: (propId: string) => Promise<void>;
+  audioOn: () => Promise<void>;
+  audioOff: () => Promise<void>;
 };
 
 type KioskContextValue = {
@@ -298,6 +306,9 @@ type KioskContextValue = {
 
 // eslint-disable-next-line react-refresh/only-export-components
 export const KioskContext = createContext<KioskContextValue | null>(null);
+
+const FPP_STATUS_POLL_MS = 5000;
+const PROP_ERROR_CLEAR_MS = 4000;
 
 export function KioskProvider({ children }: { children: ReactNode }) {
   const [state, dispatch] = useReducer(reducer, undefined, initialState);
@@ -312,10 +323,7 @@ export function KioskProvider({ children }: { children: ReactNode }) {
     if (!song) return;
 
     if (config.demoMode) {
-      const item: QueueItem = {
-        position: state.queue.length + 1,
-        song,
-      };
+      const item: QueueItem = { position: state.queue.length + 1, song };
       dispatch({ type: "song/queue-optimistic", item });
       dispatch({
         type: "song/feedback",
@@ -337,51 +345,118 @@ export function KioskProvider({ children }: { children: ReactNode }) {
     } else {
       dispatch({
         type: "song/feedback",
-        feedback: {
-          kind: "error",
-          songName,
-          message: result.message,
-          at: Date.now(),
-        },
+        feedback: { kind: "error", songName, message: result.message, at: Date.now() },
       });
     }
   }, [state.availableSongs, state.queue.length]);
 
-  const triggerProp = useCallback((propId: string) => {
+  const triggerProp = useCallback(async (propId: string) => {
     const def = config.props.find((p) => p.id === propId);
     if (!def) return;
     const runtime = state.props[propId];
     if (runtime?.cooldownUntil && runtime.cooldownUntil > Date.now()) return;
+
+    // Optimistic cooldown so a second tap can't fire while the request is in flight.
     dispatch({
       type: "prop/cooldown",
       propId,
       until: Date.now() + def.cooldownSec * 1000,
     });
-    // Real FPP preset trigger arrives in Phase 4.
+
+    if (config.demoMode) return;
+
+    const result = await fpp.triggerPreset(def.preset);
+    if (result.ok) {
+      dispatch({ type: "connection/fpp", state: "online" });
+    } else {
+      const msg =
+        result.error.kind === "network"
+          ? "Show controller unreachable"
+          : `Preset failed (${result.error.message})`;
+      dispatch({ type: "prop/error", propId, message: msg });
+      if (result.error.kind === "network") {
+        dispatch({ type: "connection/fpp", state: "offline" });
+      }
+    }
   }, [state.props]);
 
-  const audioOn = useCallback(() => {
+  const audioOn = useCallback(async () => {
     if (audioBusyRef.current) return;
     if (state.audio === "active" || state.audio === "starting") return;
     audioBusyRef.current = true;
     dispatch({ type: "audio/set", state: "starting" });
-    window.setTimeout(() => {
-      const seconds = config.demoMode ? config.demoAudioSeconds : config.audioDurationSeconds;
-      dispatch({ type: "audio/set", state: "active", remainingSec: seconds });
-      audioBusyRef.current = false;
-    }, 500);
+
+    if (config.demoMode) {
+      window.setTimeout(() => {
+        dispatch({ type: "audio/set", state: "active", remainingSec: config.demoAudioSeconds });
+        audioBusyRef.current = false;
+      }, 500);
+      return;
+    }
+
+    const result = await fpp.triggerPreset(config.audioOnPreset);
+    if (result.ok) {
+      dispatch({
+        type: "audio/set",
+        state: "active",
+        remainingSec: config.audioDurationSeconds,
+      });
+      dispatch({ type: "connection/fpp", state: "online" });
+    } else {
+      // Revert cleanly — audio isn't actually on if we couldn't tell FPP.
+      dispatch({ type: "audio/set", state: "off", remainingSec: 0 });
+      if (result.error.kind === "network") {
+        dispatch({ type: "connection/fpp", state: "offline" });
+      }
+      console.warn("[audio] on failed:", result.error);
+    }
+    audioBusyRef.current = false;
   }, [state.audio]);
 
-  const audioOff = useCallback(() => {
+  const audioOff = useCallback(async () => {
     if (audioBusyRef.current) return;
     audioBusyRef.current = true;
     dispatch({ type: "audio/set", state: "stopping" });
-    window.setTimeout(() => {
-      dispatch({ type: "audio/set", state: "off", remainingSec: 0 });
-      audioBusyRef.current = false;
-    }, 300);
+
+    if (config.demoMode) {
+      window.setTimeout(() => {
+        dispatch({ type: "audio/set", state: "off", remainingSec: 0 });
+        audioBusyRef.current = false;
+      }, 300);
+      return;
+    }
+
+    // Best-effort: FPP's own timer is the authoritative safety, so we always
+    // reflect OFF in the UI regardless of whether the call succeeds.
+    const result = await fpp.triggerPreset(config.audioOffPreset);
+    if (!result.ok) {
+      console.warn("[audio] off failed (FPP safety timer still applies):", result.error);
+      if (result.error.kind === "network") {
+        dispatch({ type: "connection/fpp", state: "offline" });
+      }
+    } else {
+      dispatch({ type: "connection/fpp", state: "online" });
+    }
+    dispatch({ type: "audio/set", state: "off", remainingSec: 0 });
+    audioBusyRef.current = false;
   }, []);
 
+  // Auto-clear prop errors after a few seconds.
+  useEffect(() => {
+    const withErrors = Object.entries(state.props).filter(([, r]) => r.lastError !== null);
+    if (withErrors.length === 0) return;
+    const timers = withErrors.map(([propId]) =>
+      window.setTimeout(
+        () => dispatch({ type: "prop/clear-error", propId }),
+        PROP_ERROR_CLEAR_MS,
+      ),
+    );
+    return () => {
+      for (const t of timers) window.clearTimeout(t);
+    };
+  }, [state.props]);
+
+  // Auto-dismiss song feedback after 2.5s.
   useEffect(() => {
     if (!state.songFeedback) return;
     const id = window.setTimeout(() => {
@@ -390,6 +465,7 @@ export function KioskProvider({ children }: { children: ReactNode }) {
     return () => window.clearTimeout(id);
   }, [state.songFeedback]);
 
+  // RF sync loop — skipped in demo mode.
   useEffect(() => {
     if (config.demoMode) return;
 
@@ -424,6 +500,37 @@ export function KioskProvider({ children }: { children: ReactNode }) {
     };
   }, []);
 
+  // FPP status polling — updates the Show connection dot.
+  useEffect(() => {
+    if (config.demoMode) return;
+
+    let cancelled = false;
+    let timer: number | null = null;
+    const controller = new AbortController();
+
+    const tick = async () => {
+      if (cancelled) return;
+      const result = await fpp.getStatus(controller.signal);
+      if (cancelled) return;
+      dispatch({
+        type: "connection/fpp",
+        state: result.ok ? "online" : "offline",
+      });
+      if (!cancelled) {
+        timer = window.setTimeout(tick, FPP_STATUS_POLL_MS);
+      }
+    };
+
+    tick();
+
+    return () => {
+      cancelled = true;
+      controller.abort();
+      if (timer !== null) window.clearTimeout(timer);
+    };
+  }, []);
+
+  // Presence heartbeat — best-effort, ignores failures.
   useEffect(() => {
     if (config.demoMode) return;
     const viewerId = viewerIdRef.current ?? "kiosk";
@@ -434,6 +541,7 @@ export function KioskProvider({ children }: { children: ReactNode }) {
     return () => window.clearInterval(id);
   }, []);
 
+  // Now-playing local ticker for the progress bar.
   useEffect(() => {
     if (!state.nowPlaying) return;
     const duration = state.nowPlaying.durationSec;
@@ -450,6 +558,11 @@ export function KioskProvider({ children }: { children: ReactNode }) {
     return () => window.clearInterval(id);
   }, [state.nowPlaying?.song.name, state.nowPlaying?.durationSec]);
 
+  // Audio countdown — when it hits zero, fire the OFF preset for real.
+  // Phase 6 replaces this with an absolute-timestamp + localStorage impl.
+  const audioOffRef = useRef(audioOff);
+  audioOffRef.current = audioOff;
+
   useEffect(() => {
     if (state.audio !== "active") return;
     const expiresAt = Date.now() + state.audioRemainingSec * 1000;
@@ -458,12 +571,13 @@ export function KioskProvider({ children }: { children: ReactNode }) {
       dispatch({ type: "audio/tick", remainingSec: remaining });
       if (remaining <= 0) {
         window.clearInterval(id);
-        dispatch({ type: "audio/set", state: "off", remainingSec: 0 });
+        void audioOffRef.current();
       }
     }, 250);
     return () => window.clearInterval(id);
   }, [state.audio]);
 
+  // Prop cooldown watcher.
   useEffect(() => {
     const anyOnCooldown = Object.values(state.props).some(
       (p) => p.cooldownUntil !== null,
