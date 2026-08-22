@@ -66,15 +66,16 @@ ssh -o BatchMode=no "$PI_USER@$PI_HOST" bash -s <<REMOTE
 set -e
 cd "$PI_REPO"
 git pull --ff-only
-sudo ./deploy/install.sh --app-only
+sudo bash ./deploy/install.sh --app-only
 REMOTE
 
 if [[ $RESTART_CHROMIUM -eq 1 ]]; then
   log "Restarting Chromium on the kiosk"
-  # Use [c]hromium-browser so pkill doesn't match its own ssh command line
-  # (which would kill our own connection). The [c] regex trick matches
-  # 'chromium-browser' while the pattern text itself does not contain it.
-  ssh "$PI_USER@$PI_HOST" "sudo pkill -f '[c]hromium-browser' || true" || true
+  # Match '[c]hromium' — the [c] regex trick prevents pkill from
+  # matching its own ssh command line (which would kill our connection).
+  # Plain 'chromium' covers both the legacy chromium-browser binary and
+  # the current /usr/lib/chromium/chromium on Debian trixie.
+  ssh "$PI_USER@$PI_HOST" "sudo pkill -f '[c]hromium' || true" || true
 fi
 
 log "Done. Reload Chromium from the admin panel (or use -r next time)."
