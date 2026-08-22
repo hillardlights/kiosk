@@ -22,6 +22,14 @@ if [[ -f "$PROFILE_DIR/Default/Preferences" ]]; then
     "$PROFILE_DIR/Default/Preferences" 2>/dev/null || true
 fi
 
+# Chromium's SingletonLock/Cookie/Socket symlinks are stamped with
+# hostname+pid. If the pi was renamed (e.g. raspberrypi → hillard-kiosk)
+# or Chromium didn't exit cleanly, the stale lock refuses launch with
+# "profile appears to be in use by another Chromium process on another
+# computer" — black screen forever. Nothing else can hold this lock on
+# a single-user kiosk, so it's always safe to clear.
+rm -f "$PROFILE_DIR"/Singleton* 2>/dev/null || true
+
 exec "$CHROMIUM_BIN" \
   --kiosk \
   --noerrdialogs \
