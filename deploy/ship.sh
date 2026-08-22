@@ -71,7 +71,10 @@ REMOTE
 
 if [[ $RESTART_CHROMIUM -eq 1 ]]; then
   log "Restarting Chromium on the kiosk"
-  ssh "$PI_USER@$PI_HOST" "sudo pkill chromium-browser || true" || true
+  # Use [c]hromium-browser so pkill doesn't match its own ssh command line
+  # (which would kill our own connection). The [c] regex trick matches
+  # 'chromium-browser' while the pattern text itself does not contain it.
+  ssh "$PI_USER@$PI_HOST" "sudo pkill -f '[c]hromium-browser' || true" || true
 fi
 
 log "Done. Reload Chromium from the admin panel (or use -r next time)."

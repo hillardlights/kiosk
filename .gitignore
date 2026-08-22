@@ -48,6 +48,9 @@ public/config.json
 # Local deploy overrides (Pi hostname/user for deploy/ship.sh)
 .env.ship
 
+# Claude Code per-machine settings (project skills stay committed)
+.claude/settings.local.json
+
 # TypeScript incremental build info
 *.tsbuildinfo
 
