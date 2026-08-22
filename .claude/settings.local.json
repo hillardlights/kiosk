@@ -1,0 +1,15 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm run *)",
+      "Bash(git *)",
+      "Bash(bash D:/repo/kiosk/deploy/ship.sh -r --no-commit)",
+      "Bash(ping *)",
+      "Read(//c/Users/hilla/.ssh/**)",
+      "Bash(ssh-keygen -F hillard-kiosk.local)",
+      "Bash(ssh-keygen *)",
+      "Bash(ssh *)",
+      "Bash(bash *)"
+    ]
+  }
+}

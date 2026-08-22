@@ -94,7 +94,7 @@ export function AboutPanel() {
             Made with soldering irons &amp; sleep deprivation
           </p>
           <p className="mt-1 text-sm text-neutral-300">
-            Thanks for stopping by. Enjoy the show.
+            Thanks for stopping by. Enjoy the show!
           </p>
           <p className="mt-2 text-[0.65rem] uppercase tracking-[0.3em] text-neutral-500">
             {brand.name} · {brand.seasonLabel} {brand.seasonYear}
