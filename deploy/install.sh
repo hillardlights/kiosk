@@ -66,21 +66,6 @@ ExecStart=-/sbin/agetty --autologin $KIOSK_USER --noclear %I \$TERM
 EOF
   systemctl daemon-reload
 
-  log "Installing bash_profile autostart snippet for $KIOSK_USER"
-  install -m 0644 -o "$KIOSK_USER" -g "$KIOSK_USER" \
-    "$REPO_DIR/deploy/bash_profile.sh" \
-    "$KIOSK_HOME/.bash_profile"
-
-  log "Installing xinitrc for $KIOSK_USER"
-  install -m 0755 -o "$KIOSK_USER" -g "$KIOSK_USER" \
-    "$REPO_DIR/deploy/xinitrc.sh" \
-    "$KIOSK_HOME/.xinitrc"
-
-  log "Installing chromium kiosk launcher"
-  install -m 0755 -o "$KIOSK_USER" -g "$KIOSK_USER" \
-    "$REPO_DIR/deploy/chromium-kiosk.sh" \
-    "$KIOSK_HOME/chromium-kiosk.sh"
-
   log "Installing nginx site config"
   install -m 0644 "$REPO_DIR/deploy/nginx-kiosk.conf" /etc/nginx/sites-available/kiosk
   rm -f /etc/nginx/sites-enabled/default
@@ -102,6 +87,25 @@ EOF
     echo "  → edit that file to point at your real FPP + RF settings"
   fi
 fi
+
+# Launcher scripts belong to the app, not the system config — refresh
+# them on every deploy (including --app-only) so ship.sh changes to
+# .bash_profile / .xinitrc / chromium-kiosk.sh land without a full
+# reinstall.
+log "Installing bash_profile autostart snippet for $KIOSK_USER"
+install -m 0644 -o "$KIOSK_USER" -g "$KIOSK_USER" \
+  "$REPO_DIR/deploy/bash_profile.sh" \
+  "$KIOSK_HOME/.bash_profile"
+
+log "Installing xinitrc for $KIOSK_USER"
+install -m 0755 -o "$KIOSK_USER" -g "$KIOSK_USER" \
+  "$REPO_DIR/deploy/xinitrc.sh" \
+  "$KIOSK_HOME/.xinitrc"
+
+log "Installing chromium kiosk launcher"
+install -m 0755 -o "$KIOSK_USER" -g "$KIOSK_USER" \
+  "$REPO_DIR/deploy/chromium-kiosk.sh" \
+  "$KIOSK_HOME/chromium-kiosk.sh"
 
 log "Preparing web root at $WEB_ROOT"
 mkdir -p "$WEB_ROOT"
