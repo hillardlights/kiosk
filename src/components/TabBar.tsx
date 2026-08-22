@@ -5,6 +5,7 @@ const TABS: { id: TabId; label: string; emoji: string }[] = [
   { id: "props", label: "Effects", emoji: "🎃" },
   { id: "audio", label: "Audio", emoji: "🔊" },
   { id: "follow", label: "Follow", emoji: "📸" },
+  { id: "about", label: "About", emoji: "💡" },
 ];
 
 export function TabBar({
@@ -16,7 +17,7 @@ export function TabBar({
 }) {
   return (
     <nav
-      className="grid grid-cols-4 gap-2 rounded-3xl border border-white/10 bg-black/70 p-2 backdrop-blur-md"
+      className="grid grid-cols-5 gap-2 rounded-3xl border border-white/10 bg-black/70 p-2 backdrop-blur-md"
       role="tablist"
     >
       {TABS.map((tab) => {

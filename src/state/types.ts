@@ -38,7 +38,7 @@ export type PropRuntime = {
   lastError: string | null;
 };
 
-export type TabId = "songs" | "props" | "audio" | "follow";
+export type TabId = "songs" | "props" | "audio" | "follow" | "about";
 
 export type SongFeedback =
   | { kind: "queued"; songName: string; at: number }

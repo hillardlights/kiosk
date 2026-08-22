@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { AboutPanel } from "../components/AboutPanel";
 import { AttractOverlay } from "../components/AttractOverlay";
 import { AudioPanel } from "../components/AudioPanel";
 import { BackgroundFX } from "../components/BackgroundFX";
@@ -41,6 +42,7 @@ export function Home() {
           {tab === "props" && <PropPanel />}
           {tab === "audio" && <AudioPanel />}
           {tab === "follow" && <FollowPanel />}
+          {tab === "about" && <AboutPanel />}
         </main>
         <TabBar active={tab} onSelect={setTab} />
       </div>
