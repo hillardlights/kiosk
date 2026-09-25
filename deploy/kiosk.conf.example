@@ -31,3 +31,12 @@ VITE_SEASON_YEAR=2026
 # NOT a real security boundary — anything in this file is trivially
 # readable by anyone with physical access to the SD card.
 VITE_ADMIN_PIN=
+
+# Songs that are new for the current season. Pipe-separated (|) list
+# of song display names, matched case-insensitively against the song
+# titles served by FPP. Songs listed here appear when the "New for
+# 2026" scope is active in the song picker and get a ★ NEW badge in
+# the default "All" view. Songs not listed here are assumed to be
+# returning from prior years. Update once per season; safe to edit
+# on the running Pi and re-run generate-config.sh to apply.
+new_songs = James Bond Collection | Back to the Future | Burnin' Up - Jonas Brothers | Dracula - Tame Impala | Houdini Thriller Breath Mashup - Joshuel Mashups | Madame Leotas Swinging Wake - Disneyland | Monster - Skillet

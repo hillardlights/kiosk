@@ -17,7 +17,7 @@ export function AttractOverlay({ onDismiss }: { onDismiss: () => void }) {
       tabIndex={0}
       onClick={onDismiss}
       onTouchStart={onDismiss}
-      className="fixed inset-0 z-40 flex flex-col overflow-hidden text-neutral-100 attract-fade"
+      className="absolute inset-0 z-40 flex flex-col overflow-hidden rounded-3xl text-neutral-100 attract-fade"
     >
       {/* Ambient background matching the app palette */}
       <div
@@ -33,7 +33,7 @@ export function AttractOverlay({ onDismiss }: { onDismiss: () => void }) {
       <div className="fog fog-a" />
       <div className="fog fog-b" />
 
-      <div className="relative flex min-h-dvh flex-col items-center justify-between px-8 py-10">
+      <div className="relative flex h-full flex-col items-center justify-between px-8 py-10">
         <div className="flex flex-col items-center gap-3 text-center">
           <div className="flex items-baseline justify-center gap-3">
             <span className="text-4xl" aria-hidden>{brand.seasonEmoji}</span>

@@ -1,6 +1,9 @@
 import type { PropDef } from "./state/types";
 
-type RuntimeConfig = Record<string, string | number | boolean | null | undefined>;
+type RuntimeConfig = Record<
+  string,
+  string | number | boolean | string[] | null | undefined
+>;
 
 function runtimeConfig(): RuntimeConfig {
   const g = globalThis as unknown as { __KIOSK_RUNTIME_CONFIG__?: RuntimeConfig };
@@ -40,6 +43,18 @@ function envBool(key: string, fallback: boolean): boolean {
   const raw = import.meta.env[key];
   if (typeof raw !== "string") return fallback;
   return raw === "true" || raw === "1";
+}
+
+function envStringArray(key: string, fallback: string[]): string[] {
+  const rt = runtimeConfig()[key];
+  if (Array.isArray(rt)) return rt.filter((s) => typeof s === "string" && s.length > 0);
+  if (typeof rt === "string" && rt.length > 0) {
+    return rt
+      .split("|")
+      .map((s) => s.trim())
+      .filter((s) => s.length > 0);
+  }
+  return fallback;
 }
 
 function envSeason(
@@ -82,6 +97,7 @@ export const config = {
   demoMode: envBool("VITE_DEMO_MODE", true),
   demoAudioSeconds: envNumber("VITE_DEMO_AUDIO_SECONDS", 30),
   adminPin: envString("VITE_ADMIN_PIN", ""),
+  newSongs: envStringArray("new_songs", []),
   props: DEFAULT_PROPS,
   brand: {
     name: "Hillard Lights",

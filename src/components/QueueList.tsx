@@ -35,7 +35,7 @@ export function QueueList({
   }
 
   return (
-    <section className="rounded-3xl border border-cool-500/25 bg-cool-950/25 px-4 py-3">
+    <section className="flex h-full min-h-0 flex-col rounded-3xl border border-cool-500/25 bg-cool-950/25 px-4 py-3">
       <div className="flex items-center justify-between px-1 pb-2">
         <p className="text-[0.65rem] font-semibold uppercase tracking-[0.4em] text-cool-300/80">
           Queue
@@ -43,7 +43,7 @@ export function QueueList({
         <p className="font-mono text-xs text-cool-200/80">{capacityLabel}</p>
       </div>
 
-      <ol className="flex max-h-[40vh] min-h-0 flex-col gap-2 overflow-y-auto pr-1">
+      <ol className="flex min-h-0 flex-1 flex-col gap-2 overflow-y-auto pr-1">
         {queue.map((item, idx) => {
           const isUpNext = idx === 0;
           const mine = kioskSet.has(item.song.name);

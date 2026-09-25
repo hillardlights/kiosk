@@ -1,12 +1,19 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { config } from "../config";
 import { useKiosk } from "../hooks/useKiosk";
 import type { Song } from "../state/types";
 import { AlbumArt } from "./AlbumArt";
 import { CategoryChips } from "./CategoryChips";
-import { QueueList } from "./QueueList";
+
+type Scope = "all" | "new";
+
+function normalizeTitle(s: string): string {
+  return s.trim().toLowerCase().replace(/\s+/g, " ");
+}
 
 export function SongPicker() {
   const { state, actions } = useKiosk();
+  const [scope, setScope] = useState<Scope>("all");
   const [category, setCategory] = useState<string | null>(null);
 
   const queuedSongNames = useMemo(
@@ -28,33 +35,55 @@ export function SongPicker() {
 
   const globalBlock = offline || showDisabled || votingMode;
 
+  const newSongsSet = useMemo(
+    () => new Set(config.newSongs.map(normalizeTitle)),
+    [],
+  );
+  const isNewSong = (song: Song) => newSongsSet.has(normalizeTitle(song.displayName));
+
+  // Log any configured new_songs that don't match a real song, so the
+  // admin can catch typos in kiosk.conf without silent drops.
+  useEffect(() => {
+    if (newSongsSet.size === 0 || state.availableSongs.length === 0) return;
+    const available = new Set(state.availableSongs.map((s) => normalizeTitle(s.displayName)));
+    const missing = [...newSongsSet].filter((n) => !available.has(n));
+    if (missing.length > 0) {
+      console.warn("[kiosk] new_songs entries with no matching song:", missing);
+    }
+  }, [newSongsSet, state.availableSongs]);
+
+  const scopedSongs = useMemo(() => {
+    return scope === "new" ? state.availableSongs.filter(isNewSong) : state.availableSongs;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [state.availableSongs, scope, newSongsSet]);
+
   const categories = useMemo(() => {
     const set = new Set<string>();
-    for (const s of state.availableSongs) {
+    for (const s of scopedSongs) {
       if (s.category && s.category.trim().length > 0) set.add(s.category);
     }
     return Array.from(set).sort();
-  }, [state.availableSongs]);
+  }, [scopedSongs]);
+
+  // If the active category vanished when the scope changed, reset it.
+  useEffect(() => {
+    if (category && !categories.includes(category)) setCategory(null);
+  }, [categories, category]);
 
   const visibleSongs = useMemo(() => {
-    if (!category) return state.availableSongs;
-    return state.availableSongs.filter((s) => s.category === category);
-  }, [state.availableSongs, category]);
+    if (!category) return scopedSongs;
+    return scopedSongs.filter((s) => s.category === category);
+  }, [scopedSongs, category]);
 
   const onTap = (songName: string) => {
     if (globalBlock || queueFull || kioskLocked) return;
     void actions.queueSong(songName);
   };
 
+  const hasNewSongs = newSongsSet.size > 0;
+
   return (
     <div className="flex h-full min-h-0 flex-col gap-4">
-      <QueueList
-        queue={state.queue}
-        kioskQueuedSongs={state.kioskQueuedSongs}
-        showStatus={state.showStatus}
-        nowPlaying={state.nowPlaying}
-      />
-
       {offline ? (
         <Banner
           tone="error"
@@ -87,37 +116,47 @@ export function SongPicker() {
         />
       ) : null}
 
-      <div className="flex min-h-0 flex-1 flex-col gap-3">
-        <div className="flex items-center justify-between gap-3">
-          <p className="text-[0.65rem] font-semibold uppercase tracking-[0.4em] text-neutral-500">
-            Pick a song
-          </p>
-          <p className="text-[0.65rem] font-mono text-neutral-600">
-            {visibleSongs.length} of {state.availableSongs.length}
-          </p>
-        </div>
-        <CategoryChips
-          categories={categories}
-          active={category}
-          onSelect={setCategory}
-        />
+      <div className="flex items-center justify-between gap-3">
+        <p className="text-xs font-semibold uppercase tracking-[0.4em] text-neutral-400">
+          Pick a song
+        </p>
+        <p className="text-xs font-mono text-neutral-500">
+          {visibleSongs.length} of {state.availableSongs.length}
+        </p>
+      </div>
 
-        <div className="min-h-0 flex-1 overflow-y-auto pr-1 pb-4">
-          <ul className="grid grid-cols-1 gap-3">
-            {visibleSongs.length === 0 ? (
-              <li className="rounded-2xl border border-white/10 bg-white/[0.03] px-5 py-6 text-center text-neutral-400">
-                {state.availableSongs.length === 0
-                  ? "No songs loaded from the show yet."
-                  : "No songs in this category."}
-              </li>
-            ) : null}
+      {hasNewSongs ? (
+        <ScopeToggle
+          scope={scope}
+          onSelect={(s) => {
+            setScope(s);
+            setCategory(null);
+          }}
+          seasonYear={config.brand.seasonYear}
+        />
+      ) : null}
+
+      <CategoryChips categories={categories} active={category} onSelect={setCategory} />
+
+      <div className="min-h-0 flex-1 overflow-y-auto pr-1 pb-4">
+        {visibleSongs.length === 0 ? (
+          <div className="rounded-3xl border border-white/10 bg-white/[0.03] px-6 py-10 text-center text-neutral-400">
+            {state.availableSongs.length === 0
+              ? "No songs loaded from the show yet."
+              : scope === "new"
+                ? "No new songs match this filter yet."
+                : "No songs in this category."}
+          </div>
+        ) : (
+          <ul className="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
             {visibleSongs.map((song) => (
-              <SongRow
+              <SongCard
                 key={song.name}
                 song={song}
                 isCurrent={song.name === currentSongName}
                 isQueued={queuedSongNames.has(song.name)}
                 isKioskQueued={kioskQueuedSet.has(song.name)}
+                showNewBadge={hasNewSongs && scope === "all" && isNewSong(song)}
                 feedbackKind={
                   feedback && feedback.songName === song.name ? feedback.kind : null
                 }
@@ -139,17 +178,87 @@ export function SongPicker() {
               />
             ))}
           </ul>
-        </div>
+        )}
       </div>
     </div>
   );
 }
 
-function SongRow({
+function ScopeToggle({
+  scope,
+  onSelect,
+  seasonYear,
+}: {
+  scope: Scope;
+  onSelect: (s: Scope) => void;
+  seasonYear: number;
+}) {
+  return (
+    <div
+      role="tablist"
+      aria-label="Song scope"
+      className="grid grid-cols-2 gap-2 rounded-2xl border border-white/10 bg-black/45 p-1.5 backdrop-blur-sm"
+    >
+      <ScopePill
+        active={scope === "all"}
+        label="All songs"
+        sublabel="Everything on the show"
+        onClick={() => onSelect("all")}
+      />
+      <ScopePill
+        active={scope === "new"}
+        label={`New for ${seasonYear}`}
+        sublabel="Just this season's additions"
+        icon="★"
+        onClick={() => onSelect("new")}
+      />
+    </div>
+  );
+}
+
+function ScopePill({
+  active,
+  label,
+  sublabel,
+  icon,
+  onClick,
+}: {
+  active: boolean;
+  label: string;
+  sublabel: string;
+  icon?: string;
+  onClick: () => void;
+}) {
+  return (
+    <button
+      type="button"
+      role="tab"
+      aria-selected={active}
+      onClick={onClick}
+      className={
+        "flex flex-col items-center justify-center gap-1 rounded-xl px-4 py-3 transition active:scale-[0.98] " +
+        (active
+          ? "bg-gradient-to-b from-accent-500/30 to-accent-500/10 text-accent-100 shadow-[0_0_16px_rgb(var(--accent-rgb)_/_0.32)]"
+          : "text-neutral-400 hover:text-neutral-200")
+      }
+    >
+      <span className="flex items-center gap-2 text-sm font-bold uppercase tracking-[0.22em]">
+        {icon ? <span aria-hidden>{icon}</span> : null}
+        {label}
+      </span>
+      <span className="text-[0.6rem] uppercase tracking-[0.28em] text-neutral-500">
+        {sublabel}
+      </span>
+    </button>
+  );
+}
+
+function SongCard({
   song,
   isCurrent,
   isQueued,
   isKioskQueued,
+  showNewBadge,
   feedbackKind,
   feedbackMessage,
   disabled,
@@ -159,13 +268,14 @@ function SongRow({
   isCurrent: boolean;
   isQueued: boolean;
   isKioskQueued: boolean;
+  showNewBadge: boolean;
   feedbackKind: "queued" | "error" | null;
   feedbackMessage: string | null;
   disabled: boolean;
   onTap: () => void;
 }) {
   const cls = isCurrent
-    ? "border-accent-500/45 bg-accent-500/15"
+    ? "border-accent-500/50 bg-accent-500/15"
     : feedbackKind === "queued"
       ? "border-emerald-400/60 bg-emerald-500/15"
       : feedbackKind === "error"
@@ -174,7 +284,20 @@ function SongRow({
           ? "border-emerald-400/40 bg-emerald-500/10"
           : isQueued
             ? "border-cool-400/40 bg-cool-500/10"
-            : "border-white/10 bg-white/[0.04] hover:bg-white/[0.07]";
+            : "border-white/10 bg-white/[0.04] hover:bg-white/[0.08]";
+
+  const statusLabel = isCurrent
+    ? { text: "Playing", tone: "text-accent-300" }
+    : feedbackKind === "queued"
+      ? { text: "Queued!", tone: "text-emerald-300" }
+      : feedbackKind === "error"
+        ? { text: "Try again", tone: "text-rose-300" }
+        : isKioskQueued
+          ? { text: "Your request", tone: "text-emerald-300" }
+          : isQueued
+            ? { text: "In queue", tone: "text-cool-300" }
+            : { text: "Tap to queue", tone: "text-neutral-500" };
+
   return (
     <li>
       <button
@@ -182,41 +305,44 @@ function SongRow({
         onClick={onTap}
         disabled={disabled}
         className={
-          "song-row group w-full rounded-2xl border px-4 py-3 text-left transition " +
-          "active:scale-[0.99] disabled:opacity-70 " +
+          "song-card group flex w-full flex-col overflow-hidden rounded-2xl border text-left transition " +
+          "active:scale-[0.98] disabled:opacity-70 " +
           cls
         }
       >
-        <div className="flex items-center gap-4">
-          <AlbumArt imageUrl={song.imageUrl} alt={song.displayName} size="small" />
-          <div className="min-w-0 flex-1">
-            <p className="truncate text-lg font-bold text-white">{song.displayName}</p>
-            {song.artist ? (
-              <p className="truncate text-sm text-neutral-400">{song.artist}</p>
-            ) : null}
-            {feedbackMessage ? (
-              <p className="mt-1 text-sm text-rose-200">{feedbackMessage}</p>
-            ) : null}
+        <div className="relative aspect-square w-full overflow-hidden">
+          <div className="absolute inset-0 flex items-center justify-center">
+            <AlbumArt
+              imageUrl={song.imageUrl}
+              alt={song.displayName}
+              size="hero"
+              glow={isCurrent}
+            />
           </div>
-          <div className="flex flex-col items-end gap-1">
-            <span className="text-[0.65rem] font-semibold uppercase tracking-[0.25em]">
-              {isCurrent ? (
-                <span className="text-accent-300">Playing</span>
-              ) : feedbackKind === "queued" ? (
-                <span className="text-emerald-300">Queued!</span>
-              ) : feedbackKind === "error" ? (
-                <span className="text-rose-300">Try again</span>
-              ) : isKioskQueued ? (
-                <span className="text-emerald-300">Your request</span>
-              ) : isQueued ? (
-                <span className="text-cool-300">In queue</span>
-              ) : (
-                <span className="text-neutral-500 group-hover:text-accent-300">
-                  Tap to queue
-                </span>
-              )}
+          {showNewBadge ? (
+            <span className="absolute left-2 top-2 rounded-full border border-accent-400/60 bg-accent-500/25 px-2 py-0.5 text-[0.6rem] font-bold uppercase tracking-[0.25em] text-accent-100 shadow-[0_0_10px_rgb(var(--accent-rgb)_/_0.5)]">
+              ★ New
             </span>
-          </div>
+          ) : null}
+        </div>
+        <div className="flex min-h-0 flex-col gap-1 px-3 py-3">
+          <p className="line-clamp-2 text-sm font-bold leading-tight text-white">
+            {song.displayName}
+          </p>
+          {song.artist ? (
+            <p className="truncate text-xs text-neutral-400">{song.artist}</p>
+          ) : null}
+          {feedbackMessage ? (
+            <p className="mt-1 text-xs text-rose-200">{feedbackMessage}</p>
+          ) : null}
+          <p
+            className={
+              "mt-1 text-[0.6rem] font-semibold uppercase tracking-[0.25em] " +
+              statusLabel.tone
+            }
+          >
+            {statusLabel.text}
+          </p>
         </div>
       </button>
     </li>
