@@ -71,8 +71,7 @@ EOF
   rm -f /etc/nginx/sites-enabled/default
   ln -sf /etc/nginx/sites-available/kiosk /etc/nginx/sites-enabled/kiosk
 
-  log "Installing runtime config generator + systemd unit"
-  install -m 0755 "$REPO_DIR/deploy/generate-config.sh" /usr/local/sbin/kiosk-generate-config.sh
+  log "Installing runtime config systemd unit"
   install -m 0644 "$REPO_DIR/deploy/kiosk-config.service" /etc/systemd/system/kiosk-config.service
   systemctl daemon-reload
   systemctl enable kiosk-config.service
@@ -106,6 +105,9 @@ log "Installing chromium kiosk launcher"
 install -m 0755 -o "$KIOSK_USER" -g "$KIOSK_USER" \
   "$REPO_DIR/deploy/chromium-kiosk.sh" \
   "$KIOSK_HOME/chromium-kiosk.sh"
+
+log "Installing runtime config generator"
+install -m 0755 "$REPO_DIR/deploy/generate-config.sh" /usr/local/sbin/kiosk-generate-config.sh
 
 log "Preparing web root at $WEB_ROOT"
 mkdir -p "$WEB_ROOT"
