@@ -38,6 +38,7 @@ exec "$CHROMIUM_BIN" \
   --disable-restore-session-state \
   --disable-features=TranslateUI,OverscrollHistoryNavigation \
   --overscroll-history-navigation=0 \
+  --touch-events=enabled \
   --check-for-update-interval=31536000 \
   --autoplay-policy=no-user-gesture-required \
   --no-first-run \
