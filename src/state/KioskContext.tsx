@@ -435,23 +435,32 @@ export function KioskProvider({ children }: { children: ReactNode }) {
 
   const audioOn = useCallback(async () => {
     if (audioBusyRef.current) return;
-    if (state.audio === "active" || state.audio === "starting") return;
+    // Mid-transition — ignore. Once active, tapping again is a "refresh
+    // the 6-min timer" gesture: the preset is idempotent, we just re-fire
+    // and reset the expiry.
+    if (state.audio === "starting") return;
+    const wasActive = state.audio === "active";
     audioBusyRef.current = true;
-    dispatch({ type: "audio/set", state: "starting" });
+    if (!wasActive) {
+      dispatch({ type: "audio/set", state: "starting" });
+    }
 
     if (config.demoMode) {
-      window.setTimeout(() => {
-        const durationSec = config.demoAudioSeconds;
-        const expiresAt = Date.now() + durationSec * 1000;
-        persistAudioExpiry(expiresAt);
-        dispatch({
-          type: "audio/set",
-          state: "active",
-          remainingSec: durationSec,
-          expiresAt,
-        });
-        audioBusyRef.current = false;
-      }, 500);
+      window.setTimeout(
+        () => {
+          const durationSec = config.demoAudioSeconds;
+          const expiresAt = Date.now() + durationSec * 1000;
+          persistAudioExpiry(expiresAt);
+          dispatch({
+            type: "audio/set",
+            state: "active",
+            remainingSec: durationSec,
+            expiresAt,
+          });
+          audioBusyRef.current = false;
+        },
+        wasActive ? 100 : 500,
+      );
       return;
     }
 
@@ -468,8 +477,12 @@ export function KioskProvider({ children }: { children: ReactNode }) {
       });
       dispatch({ type: "connection/fpp", state: "online" });
     } else {
-      // Revert cleanly — audio isn't actually on if we couldn't tell FPP.
-      dispatch({ type: "audio/set", state: "off", remainingSec: 0, expiresAt: null });
+      // Only fall back to OFF if this was a fresh turn-on. On refresh
+      // taps, leave the existing active session alone — the old timer
+      // is still valid.
+      if (!wasActive) {
+        dispatch({ type: "audio/set", state: "off", remainingSec: 0, expiresAt: null });
+      }
       if (result.error.kind === "network") {
         dispatch({ type: "connection/fpp", state: "offline" });
       }

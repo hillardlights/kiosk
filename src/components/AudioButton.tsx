@@ -17,12 +17,13 @@ export function AudioButton() {
 
   const onClick = () => {
     if (isBusy) return;
-    if (isActive) actions.audioOff();
-    else actions.audioOn();
+    // Always audioOn — when already active, this refreshes the timer
+    // back to the full duration. Manual off is admin-only.
+    actions.audioOn();
   };
 
   const primary = isActive
-    ? "AUDIO ON THE SPEAKERS"
+    ? "TAP TO ADD TIME"
     : state.audio === "starting"
       ? "TURNING ON…"
       : state.audio === "stopping"
@@ -60,12 +61,17 @@ export function AudioButton() {
       <span className="relative z-10 block text-[clamp(1.75rem,4.5vw,3.25rem)] font-black uppercase tracking-[0.1em] text-white drop-shadow-[0_2px_14px_rgba(0,0,0,0.6)]">
         {primary}
       </span>
+      {isActive ? (
+        <span className="relative z-10 mt-3 block text-[0.7rem] font-semibold uppercase tracking-[0.5em] text-accent-200/85">
+          Time Remaining
+        </span>
+      ) : null}
       <span
         className={
-          "relative z-10 mt-4 block font-mono font-semibold tracking-[0.15em] " +
+          "relative z-10 block font-mono font-semibold tracking-[0.15em] " +
           (isActive
-            ? "text-[clamp(2.75rem,7vw,4.5rem)] text-accent-100 drop-shadow-[0_0_22px_rgb(var(--accent-rgb)_/_0.7)]"
-            : "text-[clamp(0.9rem,1.6vw,1.15rem)] text-cool-100/80")
+            ? "mt-1 text-[clamp(2.75rem,7vw,4.5rem)] text-accent-100 drop-shadow-[0_0_22px_rgb(var(--accent-rgb)_/_0.7)] tabular-nums"
+            : "mt-4 text-[clamp(0.9rem,1.6vw,1.15rem)] text-cool-100/80")
         }
       >
         {detail}
