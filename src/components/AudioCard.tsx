@@ -30,7 +30,8 @@ export function AudioCard() {
       onClick={onClick}
       disabled={isBusy}
       className={
-        "audio-card relative overflow-hidden rounded-3xl border p-4 text-left transition-transform active:scale-[0.98] " +
+        "audio-card relative overflow-hidden rounded-3xl border p-4 text-left " +
+        "transition-transform duration-75 active:scale-[0.96] active:brightness-125 " +
         (isActive
           ? "is-active border-accent-400/45 bg-accent-950/40"
           : "is-idle border-cool-400/35 bg-cool-950/30")

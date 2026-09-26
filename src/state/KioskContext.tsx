@@ -352,7 +352,7 @@ function snapshotFromRf(show: rf.RfShow): RfSnapshot {
 type KioskActions = {
   queueSong: (songName: string) => Promise<void>;
   triggerProp: (propId: string) => Promise<void>;
-  audioOn: () => Promise<void>;
+  audioOn: () => void;
   audioOff: () => Promise<void>;
 };
 
@@ -437,22 +437,20 @@ export function KioskProvider({ children }: { children: ReactNode }) {
     }
   }, [state.props]);
 
-  const audioOn = useCallback(async () => {
+  const audioOn = useCallback(() => {
+    // Fully synchronous critical path so React can render the new state
+    // on the very next frame after the tap — the FPP HTTP call is fired
+    // in the background and doesn't gate anything the user sees. Refs
+    // for the busy-guard and wasActive avoid stale-closure races when
+    // the button is tapped in quick succession.
     if (audioBusyRef.current) return;
     const wasActive = state.audio === "active";
     audioBusyRef.current = true;
 
-    // Optimistic transition — flip to active + start the timer immediately
-    // on tap. The FPP preset call is fired-and-checked async so touch
-    // feedback (countdown, progress bar, reset toast) is never gated on
-    // network latency. If FPP fails we mark the connection offline so the
-    // status dot reflects it, but the timer keeps running — the show's
-    // own audio-off safety at the FPP side is the ultimate backstop.
     const durationSec = config.demoMode
       ? config.demoAudioSeconds
       : config.audioDurationSeconds;
     const expiresAt = Date.now() + durationSec * 1000;
-    persistAudioExpiry(expiresAt);
     dispatch({
       type: "audio/set",
       state: "active",
@@ -460,25 +458,35 @@ export function KioskProvider({ children }: { children: ReactNode }) {
       expiresAt,
     });
     if (wasActive) {
-      // Refresh tap — flash the "TIMER RESET" toast.
       dispatch({ type: "audio/reset-flash", at: Date.now() });
     }
+    // localStorage.setItem can spike on slow SD cards — do it after the
+    // dispatch so it never sits between the tap and the state update.
+    persistAudioExpiry(expiresAt);
 
     if (config.demoMode) {
       audioBusyRef.current = false;
       return;
     }
 
-    const result = await fpp.triggerPreset(config.audioOnPreset);
-    if (result.ok) {
-      dispatch({ type: "connection/fpp", state: "online" });
-    } else {
-      if (result.error.kind === "network") {
-        dispatch({ type: "connection/fpp", state: "offline" });
-      }
-      console.warn("[audio] on failed (timer still runs):", result.error);
-    }
-    audioBusyRef.current = false;
+    // Fire-and-forget: the timer is already running client-side, this
+    // just tells FPP to raise the actual speakers. Failures update the
+    // connection dot; the show's own audio-off safety is the backstop.
+    void fpp
+      .triggerPreset(config.audioOnPreset)
+      .then((result) => {
+        if (result.ok) {
+          dispatch({ type: "connection/fpp", state: "online" });
+        } else {
+          if (result.error.kind === "network") {
+            dispatch({ type: "connection/fpp", state: "offline" });
+          }
+          console.warn("[audio] on failed (timer still runs):", result.error);
+        }
+      })
+      .finally(() => {
+        audioBusyRef.current = false;
+      });
   }, [state.audio]);
 
   const audioOff = useCallback(async () => {

@@ -272,6 +272,14 @@ button:disabled {
   to   { transform: scaleY(1.8); }
 }
 
+/* Promote the audio card to its own compositor layer so tap-down scale
+   feedback lands on the very next frame — otherwise the state change
+   also invalidates paint on the parent rail and touch feels laggy. */
+.audio-card {
+  will-change: transform;
+  transform: translateZ(0);
+}
+
 /* Rail-sized audio card idle-state breath — subtler than the big button
    since the card is always visible and shouldn't compete with anything. */
 .audio-card.is-idle {
