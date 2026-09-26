@@ -8,7 +8,6 @@ export function AttractOverlay({ onDismiss }: { onDismiss: () => void }) {
       role="button"
       tabIndex={0}
       onClick={onDismiss}
-      onTouchStart={onDismiss}
       className="absolute inset-0 z-40 flex flex-col overflow-hidden rounded-3xl text-neutral-100 attract-fade"
     >
       <div

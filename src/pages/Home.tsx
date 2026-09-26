@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { AboutPanel } from "../components/AboutPanel";
 import { AttractOverlay } from "../components/AttractOverlay";
 import { AudioCard } from "../components/AudioCard";
@@ -26,17 +26,22 @@ export function Home() {
   // the landing view anymore.
   const [tab, setTab] = useState<TabId>("songs");
   const [adminOpen, setAdminOpen] = useState(false);
-  const [attractDismissed, setAttractDismissed] = useState(false);
+  const [attractOpen, setAttractOpen] = useState(false);
   const isIdle = useIdle(ATTRACT_IDLE_MS);
 
-  const showAttract = isIdle && !adminOpen && !attractDismissed;
+  // Open the attract overlay when the user goes idle, but don't close it
+  // when idle flips back to false — closing has to happen via an explicit
+  // click on the overlay. If we unmounted on !isIdle, the touch that woke
+  // the kiosk would dispatch its synthetic click to whatever's underneath
+  // (usually a song card), silently queueing a song.
+  useEffect(() => {
+    if (isIdle) setAttractOpen(true);
+  }, [isIdle]);
 
-  if (!isIdle && attractDismissed) {
-    queueMicrotask(() => setAttractDismissed(false));
-  }
+  const showAttract = attractOpen && !adminOpen;
 
   const dismissAttract = () => {
-    setAttractDismissed(true);
+    setAttractOpen(false);
     setTab("songs");
   };
 
@@ -48,7 +53,7 @@ export function Home() {
         active={tab}
         onSelect={(id) => {
           setTab(id);
-          setAttractDismissed(true);
+          setAttractOpen(false);
         }}
         onAdminGesture={() => setAdminOpen(true)}
       />

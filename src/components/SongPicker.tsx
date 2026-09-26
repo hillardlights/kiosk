@@ -148,7 +148,7 @@ export function SongPicker() {
 
       <CategoryChips categories={categories} active={category} onSelect={setCategory} />
 
-      <div className="min-h-0 flex-1 overflow-y-auto pr-1 pb-4">
+      <div className="song-scroll min-h-0 flex-1 overflow-y-auto pr-1 pb-4">
         {visibleSongs.length === 0 ? (
           <div className="rounded-3xl border border-white/10 bg-white/[0.03] px-6 py-10 text-center text-neutral-400">
             {state.availableSongs.length === 0

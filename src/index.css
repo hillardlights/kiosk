@@ -335,6 +335,19 @@ button:disabled {
   contain-intrinsic-size: auto 260px;
 }
 
+/* Isolate the song list's scroll region so paint invalidations don't
+   propagate to the parent stack, and promote it to its own compositor
+   layer. On the Pi 4's VideoCore VI, this is the difference between
+   scroll frames that render in a few ms and frames that stall waiting
+   for the whole page to be recomposited. `overflow-anchor: none`
+   defends against scroll jumps when lazy-loaded images resolve. */
+.song-scroll {
+  contain: paint;
+  overflow-anchor: none;
+  transform: translateZ(0);
+  will-change: scroll-position;
+}
+
 /* Atmospheric fog layers are still referenced by AttractOverlay, but
    the standing BackgroundFX no longer uses them. Keep the class
    definition cheap so attract idle screens don't stall taps. */
