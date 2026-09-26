@@ -20,7 +20,9 @@ const ATTRACT_IDLE_MS = 60_000;
 
 export function Home() {
   const { state } = useKiosk();
-  const [tab, setTab] = useState<TabId>("songs");
+  // Land on Audio so the first tap after a visitor walks up turns the
+  // driveway speakers on — the single most-requested action.
+  const [tab, setTab] = useState<TabId>("audio");
   const [adminOpen, setAdminOpen] = useState(false);
   const [attractDismissed, setAttractDismissed] = useState(false);
   const isIdle = useIdle(ATTRACT_IDLE_MS);
@@ -30,6 +32,13 @@ export function Home() {
   if (!isIdle && attractDismissed) {
     queueMicrotask(() => setAttractDismissed(false));
   }
+
+  const dismissAttract = () => {
+    setAttractDismissed(true);
+    // Snap back to Audio for the next visitor so the first tap after
+    // attract-mode always exposes the speaker toggle.
+    setTab("audio");
+  };
 
   return (
     <div className="relative flex h-dvh w-full overflow-hidden text-neutral-100">
@@ -50,7 +59,7 @@ export function Home() {
         {tab === "audio" && <AudioPanel />}
         {tab === "follow" && <FollowPanel />}
         {tab === "about" && <AboutPanel />}
-        {showAttract && <AttractOverlay onDismiss={() => setAttractDismissed(true)} />}
+        {showAttract && <AttractOverlay onDismiss={dismissAttract} />}
       </main>
 
       <aside className="relative flex h-full w-[360px] shrink-0 flex-col gap-4 border-l border-white/10 bg-black/40 px-4 py-6 backdrop-blur-md">

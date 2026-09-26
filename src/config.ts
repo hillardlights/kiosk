@@ -108,6 +108,7 @@ export const config = {
     seasonYear: envNumber("VITE_SEASON_YEAR", 2026),
     seasonEmoji: season === "halloween" ? "🎃" : "🎄",
     seasonLabel: season === "halloween" ? "Halloween" : "Christmas",
+    fmFrequency: envString("VITE_FM_FREQUENCY", "105.3 FM"),
     socials: {
       facebook: { label: "Facebook", handle: "hillardlights", url: "https://www.facebook.com/hillardlights/", emoji: "📘" },
       instagram: { label: "Instagram", handle: "@hillardlights", url: "https://www.instagram.com/hillardlights/", emoji: "📸" },

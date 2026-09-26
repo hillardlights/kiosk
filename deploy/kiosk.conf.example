@@ -27,6 +27,11 @@ VITE_RF_SUBDOMAIN=hillardlightshows
 VITE_SEASON=halloween
 VITE_SEASON_YEAR=2026
 
+# FM frequency the show broadcasts on. Displayed in the Audio panel
+# so guests can tune their car radio instead of using the driveway
+# speakers. Include the "FM" suffix — the string is shown as-is.
+VITE_FM_FREQUENCY=105.3 FM
+
 # PIN gating the admin panel (empty = no PIN required).
 # NOT a real security boundary — anything in this file is trivially
 # readable by anyone with physical access to the SD card.
