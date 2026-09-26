@@ -54,6 +54,7 @@ type Action =
   | { type: "song/feedback"; feedback: SongFeedback | null }
   | { type: "audio/set"; state: AudioState; remainingSec?: number; expiresAt?: number | null }
   | { type: "audio/tick"; remainingSec: number }
+  | { type: "audio/reset-flash"; at: number | null }
   | { type: "prop/cooldown"; propId: string; until: number }
   | { type: "prop/ready"; propId: string }
   | { type: "prop/error"; propId: string; message: string }
@@ -114,6 +115,7 @@ function initialState(): KioskState {
     audio: resumedActive ? "active" : "off",
     audioExpiresAt: resumedActive ? persistedExpiry : null,
     audioRemainingSec: resumedActive ? remainingFromExpiry(persistedExpiry, now) : 0,
+    audioResetAt: null,
     nowPlaying: firstUp,
     queue: inDemo ? [...DEMO_INITIAL_QUEUE] : [],
     availableSongs: inDemo ? DEMO_SONGS : [],
@@ -228,6 +230,8 @@ function reducer(state: KioskState, action: Action): KioskState {
       };
     case "audio/tick":
       return { ...state, audioRemainingSec: Math.max(0, action.remainingSec) };
+    case "audio/reset-flash":
+      return { ...state, audioResetAt: action.at };
     case "prop/cooldown": {
       const existing = state.props[action.propId];
       if (!existing) return state;
@@ -435,58 +439,44 @@ export function KioskProvider({ children }: { children: ReactNode }) {
 
   const audioOn = useCallback(async () => {
     if (audioBusyRef.current) return;
-    // Mid-transition — ignore. Once active, tapping again is a "refresh
-    // the 6-min timer" gesture: the preset is idempotent, we just re-fire
-    // and reset the expiry.
-    if (state.audio === "starting") return;
     const wasActive = state.audio === "active";
     audioBusyRef.current = true;
-    if (!wasActive) {
-      dispatch({ type: "audio/set", state: "starting" });
+
+    // Optimistic transition — flip to active + start the timer immediately
+    // on tap. The FPP preset call is fired-and-checked async so touch
+    // feedback (countdown, progress bar, reset toast) is never gated on
+    // network latency. If FPP fails we mark the connection offline so the
+    // status dot reflects it, but the timer keeps running — the show's
+    // own audio-off safety at the FPP side is the ultimate backstop.
+    const durationSec = config.demoMode
+      ? config.demoAudioSeconds
+      : config.audioDurationSeconds;
+    const expiresAt = Date.now() + durationSec * 1000;
+    persistAudioExpiry(expiresAt);
+    dispatch({
+      type: "audio/set",
+      state: "active",
+      remainingSec: durationSec,
+      expiresAt,
+    });
+    if (wasActive) {
+      // Refresh tap — flash the "TIMER RESET" toast.
+      dispatch({ type: "audio/reset-flash", at: Date.now() });
     }
 
     if (config.demoMode) {
-      window.setTimeout(
-        () => {
-          const durationSec = config.demoAudioSeconds;
-          const expiresAt = Date.now() + durationSec * 1000;
-          persistAudioExpiry(expiresAt);
-          dispatch({
-            type: "audio/set",
-            state: "active",
-            remainingSec: durationSec,
-            expiresAt,
-          });
-          audioBusyRef.current = false;
-        },
-        wasActive ? 100 : 500,
-      );
+      audioBusyRef.current = false;
       return;
     }
 
     const result = await fpp.triggerPreset(config.audioOnPreset);
     if (result.ok) {
-      const durationSec = config.audioDurationSeconds;
-      const expiresAt = Date.now() + durationSec * 1000;
-      persistAudioExpiry(expiresAt);
-      dispatch({
-        type: "audio/set",
-        state: "active",
-        remainingSec: durationSec,
-        expiresAt,
-      });
       dispatch({ type: "connection/fpp", state: "online" });
     } else {
-      // Only fall back to OFF if this was a fresh turn-on. On refresh
-      // taps, leave the existing active session alone — the old timer
-      // is still valid.
-      if (!wasActive) {
-        dispatch({ type: "audio/set", state: "off", remainingSec: 0, expiresAt: null });
-      }
       if (result.error.kind === "network") {
         dispatch({ type: "connection/fpp", state: "offline" });
       }
-      console.warn("[audio] on failed:", result.error);
+      console.warn("[audio] on failed (timer still runs):", result.error);
     }
     audioBusyRef.current = false;
   }, [state.audio]);
@@ -560,6 +550,15 @@ export function KioskProvider({ children }: { children: ReactNode }) {
     }, 2500);
     return () => window.clearTimeout(id);
   }, [state.songFeedback]);
+
+  // Auto-dismiss the audio reset flash after 2s so the toast fades away.
+  useEffect(() => {
+    if (state.audioResetAt == null) return;
+    const id = window.setTimeout(() => {
+      dispatch({ type: "audio/reset-flash", at: null });
+    }, 2000);
+    return () => window.clearTimeout(id);
+  }, [state.audioResetAt]);
 
   // RF sync loop — skipped in demo mode.
   useEffect(() => {

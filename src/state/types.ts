@@ -63,6 +63,10 @@ export type KioskState = {
   // so the countdown survives browser reloads.
   audioExpiresAt: number | null;
   audioRemainingSec: number;
+  // Timestamp of the most recent "refresh" tap while audio was already
+  // active. UI watches this to flash a "TIMER RESET · 6:00" toast that
+  // auto-clears after ~2s. Null between resets.
+  audioResetAt: number | null;
   nowPlaying: NowPlaying | null;
   queue: QueueItem[];
   availableSongs: Song[];

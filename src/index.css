@@ -272,10 +272,40 @@ button:disabled {
   to   { transform: scaleY(1.8); }
 }
 
+/* Rail-sized audio card idle-state breath — subtler than the big button
+   since the card is always visible and shouldn't compete with anything. */
+.audio-card.is-idle {
+  animation: audio-card-breathe 4s ease-in-out infinite;
+}
+
+@keyframes audio-card-breathe {
+  0%, 100% {
+    box-shadow: 0 0 0 0 rgb(var(--cool-rgb) / 0);
+  }
+  50% {
+    box-shadow: 0 0 22px rgb(var(--cool-rgb) / 0.35);
+  }
+}
+
+/* Reset-confirmation toast — pops in from the top, holds, fades out. */
+.audio-reset-toast {
+  animation: audio-reset-toast 2s ease-out forwards;
+}
+
+@keyframes audio-reset-toast {
+  0%   { transform: translateY(-24px) scale(0.9); opacity: 0; }
+  15%  { transform: translateY(0) scale(1.02); opacity: 1; }
+  25%  { transform: translateY(0) scale(1); }
+  85%  { opacity: 1; }
+  100% { transform: translateY(-8px); opacity: 0; }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .audio-button.is-idle,
+  .audio-card.is-idle,
   .pulse-ring,
-  .wave-bar {
+  .wave-bar,
+  .audio-reset-toast {
     animation: none !important;
   }
 }

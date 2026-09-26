@@ -1,10 +1,11 @@
 import { useState } from "react";
 import { AboutPanel } from "../components/AboutPanel";
 import { AttractOverlay } from "../components/AttractOverlay";
+import { AudioCard } from "../components/AudioCard";
 import { AudioPanel } from "../components/AudioPanel";
+import { AudioResetToast } from "../components/AudioResetToast";
 import { BackgroundFX } from "../components/BackgroundFX";
 import { ConnectionStatus } from "../components/ConnectionStatus";
-import { FollowCard } from "../components/FollowCard";
 import { FollowPanel } from "../components/FollowPanel";
 import { LeftRail } from "../components/LeftRail";
 import { NowPlayingCard } from "../components/NowPlayingCard";
@@ -20,9 +21,10 @@ const ATTRACT_IDLE_MS = 60_000;
 
 export function Home() {
   const { state } = useKiosk();
-  // Land on Audio so the first tap after a visitor walks up turns the
-  // driveway speakers on — the single most-requested action.
-  const [tab, setTab] = useState<TabId>("audio");
+  // Default to Songs — the driveway-speaker toggle now lives in the right
+  // rail (AudioCard), so it's one tap from any tab and doesn't need to be
+  // the landing view anymore.
+  const [tab, setTab] = useState<TabId>("songs");
   const [adminOpen, setAdminOpen] = useState(false);
   const [attractDismissed, setAttractDismissed] = useState(false);
   const isIdle = useIdle(ATTRACT_IDLE_MS);
@@ -35,9 +37,7 @@ export function Home() {
 
   const dismissAttract = () => {
     setAttractDismissed(true);
-    // Snap back to Audio for the next visitor so the first tap after
-    // attract-mode always exposes the speaker toggle.
-    setTab("audio");
+    setTab("songs");
   };
 
   return (
@@ -72,9 +72,10 @@ export function Home() {
             nowPlaying={state.nowPlaying}
           />
         </div>
-        <FollowCard />
+        <AudioCard />
       </aside>
 
+      <AudioResetToast />
       <ConnectionStatus />
       {adminOpen && <Admin onClose={() => setAdminOpen(false)} />}
     </div>
