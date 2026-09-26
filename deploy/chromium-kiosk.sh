@@ -36,7 +36,7 @@ exec "$CHROMIUM_BIN" \
   --disable-infobars \
   --disable-session-crashed-bubble \
   --disable-restore-session-state \
-  --disable-features=TranslateUI,OverscrollHistoryNavigation \
+  --disable-features=TranslateUI,OverscrollHistoryNavigation,UseChromeOSDirectVideoDecoder \
   --overscroll-history-navigation=0 \
   --touch-events=enabled \
   --check-for-update-interval=31536000 \
@@ -45,6 +45,12 @@ exec "$CHROMIUM_BIN" \
   --fast \
   --fast-start \
   --disable-pinch \
+  --use-gl=egl \
+  --ignore-gpu-blocklist \
+  --enable-gpu-rasterization \
+  --enable-zero-copy \
+  --enable-accelerated-2d-canvas \
+  --enable-features=VaapiVideoDecoder,CanvasOopRasterization \
   --user-data-dir="$PROFILE_DIR" \
   --window-position=0,0 \
   --start-fullscreen \
