@@ -9,6 +9,11 @@ import {
 } from "react";
 import { config } from "../config";
 import {
+  cachedArtwork,
+  fetchArtwork,
+  rememberArtwork,
+} from "../services/artwork";
+import {
   clearAudioExpiry,
   persistAudioExpiry,
   readAudioExpiry,
@@ -55,6 +60,7 @@ type Action =
   | { type: "audio/set"; state: AudioState; remainingSec?: number; expiresAt?: number | null }
   | { type: "audio/tick"; remainingSec: number }
   | { type: "audio/reset-flash"; at: number | null }
+  | { type: "song/artwork"; songName: string; imageUrl: string }
   | { type: "prop/cooldown"; propId: string; until: number }
   | { type: "prop/ready"; propId: string }
   | { type: "prop/error"; propId: string; message: string }
@@ -232,6 +238,20 @@ function reducer(state: KioskState, action: Action): KioskState {
       return { ...state, audioRemainingSec: Math.max(0, action.remainingSec) };
     case "audio/reset-flash":
       return { ...state, audioResetAt: action.at };
+    case "song/artwork": {
+      const { songName, imageUrl } = action;
+      const patch = (s: Song): Song =>
+        s.name === songName && !s.imageUrl ? { ...s, imageUrl } : s;
+      return {
+        ...state,
+        availableSongs: state.availableSongs.map(patch),
+        queue: state.queue.map((q) => ({ ...q, song: patch(q.song) })),
+        nowPlaying:
+          state.nowPlaying && state.nowPlaying.song.name === songName && !state.nowPlaying.song.imageUrl
+            ? { ...state.nowPlaying, song: { ...state.nowPlaying.song, imageUrl } }
+            : state.nowPlaying,
+      };
+    }
     case "prop/cooldown": {
       const existing = state.props[action.propId];
       if (!existing) return state;
@@ -286,6 +306,15 @@ function normalizeMode(raw: string | null | undefined): ViewerControlMode | null
   return null;
 }
 
+function enrichImageUrl(name: string, imageUrl: string | null): string | null {
+  if (imageUrl) return imageUrl;
+  const cached = cachedArtwork(name);
+  // cached === undefined means "never searched"; both null and string are
+  // authoritative — null means iTunes had no match, so don't retry every
+  // sync. The reducer's song/artwork action patches later successes in.
+  return cached ?? null;
+}
+
 function snapshotFromRf(show: rf.RfShow): RfSnapshot {
   const availableSongs: Song[] = show.sequences
     .filter((s) => s.active)
@@ -294,7 +323,7 @@ function snapshotFromRf(show: rf.RfShow): RfSnapshot {
       name: s.name,
       displayName: s.displayName ?? s.name,
       artist: s.artist,
-      imageUrl: s.imageUrl,
+      imageUrl: enrichImageUrl(s.name, s.imageUrl),
       category: s.category,
       active: s.active,
     }));
@@ -311,7 +340,7 @@ function snapshotFromRf(show: rf.RfShow): RfSnapshot {
           name: req.sequence.name,
           displayName: req.sequence.displayName ?? req.sequence.name,
           artist: req.sequence.artist,
-          imageUrl: req.sequence.imageUrl,
+          imageUrl: enrichImageUrl(req.sequence.name, req.sequence.imageUrl),
           category: null,
           active: true,
         },
@@ -325,7 +354,7 @@ function snapshotFromRf(show: rf.RfShow): RfSnapshot {
             name: npSeq.name,
             displayName: npSeq.displayName ?? npSeq.name,
             artist: npSeq.artist,
-            imageUrl: npSeq.imageUrl,
+            imageUrl: enrichImageUrl(npSeq.name, npSeq.imageUrl),
             category: null,
             active: true,
           },
@@ -567,6 +596,41 @@ export function KioskProvider({ children }: { children: ReactNode }) {
     }, 2000);
     return () => window.clearTimeout(id);
   }, [state.audioResetAt]);
+
+  // Auto-lookup album art from iTunes for any song whose RF record has no
+  // imageUrl and hasn't been searched yet. Runs sequentially with a small
+  // delay so we stay well below iTunes' soft rate limit (~20 req/min).
+  // Results are cached in localStorage AND the resulting artwork URLs get
+  // cached by the PWA service worker, so a warm kiosk has zero external
+  // requests for art on subsequent boots.
+  useEffect(() => {
+    const need = state.availableSongs.filter(
+      (s) => !s.imageUrl && cachedArtwork(s.name) === undefined,
+    );
+    if (need.length === 0) return;
+
+    let cancelled = false;
+    const controller = new AbortController();
+
+    (async () => {
+      for (const song of need) {
+        if (cancelled) return;
+        const url = await fetchArtwork(song.displayName, song.artist, controller.signal);
+        if (cancelled) return;
+        rememberArtwork(song.name, url);
+        if (url) {
+          dispatch({ type: "song/artwork", songName: song.name, imageUrl: url });
+        }
+        // ~5 req/sec — comfortably under iTunes' rate limit.
+        await new Promise((r) => window.setTimeout(r, 200));
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+      controller.abort();
+    };
+  }, [state.availableSongs]);
 
   // RF sync loop — skipped in demo mode.
   useEffect(() => {
