@@ -71,11 +71,21 @@ REMOTE
 
 if [[ $RESTART_CHROMIUM -eq 1 ]]; then
   log "Restarting Chromium on the kiosk"
-  # Match '[c]hromium' — the [c] regex trick prevents pkill from
-  # matching its own ssh command line (which would kill our connection).
-  # Plain 'chromium' covers both the legacy chromium-browser binary and
-  # the current /usr/lib/chromium/chromium on Debian trixie.
-  ssh "$PI_USER@$PI_HOST" "sudo pkill -f '[c]hromium' || true" || true
+  # Purge the service-worker + HTTP caches before restart. The PWA
+  # registers with registerType: autoUpdate, which installs a new SW
+  # in the background but keeps serving the *old* cached shell on the
+  # very next load — so a single Chromium restart isn't enough to see
+  # a fresh deploy. Wiping SW/Cache/Code-Cache forces a full network
+  # fetch of index.html on relaunch. Chromium's own state (profile,
+  # cookies, singleton lock, etc.) is preserved.
+  # The [c]hromium regex trick prevents pkill from matching its own
+  # ssh command line (which would kill our connection).
+  ssh "$PI_USER@$PI_HOST" bash <<'REMOTE' || true
+set -e
+PROFILE="$HOME/.config/kiosk-chromium/Default"
+rm -rf "$PROFILE/Service Worker" "$PROFILE/Cache" "$PROFILE/Code Cache" 2>/dev/null || true
+sudo pkill -f '[c]hromium' || true
+REMOTE
 fi
 
 log "Done. Reload Chromium from the admin panel (or use -r next time)."
