@@ -299,31 +299,29 @@ function SongCard({
             : { text: "Tap to queue", tone: "text-neutral-500" };
 
   return (
-    <li>
+    <li className="song-card">
       <button
         type="button"
         onClick={onTap}
         disabled={disabled}
         className={
-          "song-card group flex w-full flex-col overflow-hidden rounded-2xl border text-left transition " +
+          "group relative flex w-full flex-col overflow-hidden rounded-2xl border text-left transition-colors " +
           "active:scale-[0.98] disabled:opacity-70 " +
           cls
         }
       >
-        <div className="relative aspect-square w-full overflow-hidden">
-          <div className="absolute inset-0 flex items-center justify-center">
-            <AlbumArt
-              imageUrl={song.imageUrl}
-              alt={song.displayName}
-              size="hero"
-              glow={isCurrent}
-            />
-          </div>
-          {showNewBadge ? (
-            <span className="absolute left-2 top-2 rounded-full border border-accent-400/60 bg-accent-500/25 px-2 py-0.5 text-[0.6rem] font-bold uppercase tracking-[0.25em] text-accent-100 shadow-[0_0_10px_rgb(var(--accent-rgb)_/_0.5)]">
-              ★ New
-            </span>
-          ) : null}
+        {showNewBadge ? (
+          <span className="absolute left-2 top-2 z-10 rounded-full border border-accent-400/60 bg-accent-500/25 px-2 py-0.5 text-[0.6rem] font-bold uppercase tracking-[0.25em] text-accent-100">
+            ★ New
+          </span>
+        ) : null}
+        <div className="flex justify-center px-3 pt-4">
+          <AlbumArt
+            imageUrl={song.imageUrl}
+            alt={song.displayName}
+            size="hero"
+            glow={isCurrent}
+          />
         </div>
         <div className="flex min-h-0 flex-col gap-1 px-3 py-3">
           <p className="line-clamp-2 text-sm font-bold leading-tight text-white">

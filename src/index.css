@@ -220,14 +220,21 @@ button:disabled {
     0 0 40px rgb(var(--accent-rgb) / 0.4);
 }
 
-/* Atmospheric fog layers. Blur radius is kept modest so the Pi's GPU
-   can composite these every frame without dropping input latency —
-   a 80px blur was noticeably laggy during scroll/tap. */
+/* Song grid: skip painting off-screen cards. Cuts scroll paint cost
+   significantly when the picker holds 40+ songs. */
+.song-card {
+  content-visibility: auto;
+  contain-intrinsic-size: auto 260px;
+}
+
+/* Atmospheric fog layers are still referenced by AttractOverlay, but
+   the standing BackgroundFX no longer uses them. Keep the class
+   definition cheap so attract idle screens don't stall taps. */
 .fog {
   position: absolute;
   inset: -20%;
   filter: blur(24px);
-  opacity: 0.35;
+  opacity: 0.3;
   pointer-events: none;
   will-change: transform;
 }
