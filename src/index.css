@@ -220,14 +220,35 @@ button:disabled {
     0 0 40px rgb(var(--accent-rgb) / 0.4);
 }
 
-/* Atmospheric fog layers. */
+/* Atmospheric fog layers. Blur radius is kept modest so the Pi's GPU
+   can composite these every frame without dropping input latency —
+   a 80px blur was noticeably laggy during scroll/tap. */
 .fog {
   position: absolute;
   inset: -20%;
-  filter: blur(80px);
+  filter: blur(24px);
   opacity: 0.35;
   pointer-events: none;
   will-change: transform;
+}
+
+/* Chromium on the Pi treats backdrop-filter as a heavy composite step
+   that stalls the touch pipeline. We opt back into cheap solid
+   backgrounds by neutralising it globally — utility classes that
+   requested a blur still lay out correctly, they just don't blur. */
+[class*="backdrop-blur"] {
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+/* Kill the 300ms tap delay + hover heuristics on scrollable and
+   interactive elements so taps land immediately. */
+button,
+[role="tab"],
+[role="button"],
+.overflow-y-auto,
+.overflow-x-auto {
+  touch-action: manipulation;
 }
 
 .fog-a {
