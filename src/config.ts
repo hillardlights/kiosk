@@ -109,9 +109,10 @@ export const config = {
     seasonEmoji: season === "halloween" ? "🎃" : "🎄",
     seasonLabel: season === "halloween" ? "Halloween" : "Christmas",
     socials: {
+      facebook: { label: "Facebook", handle: "hillardlights", url: "https://www.facebook.com/hillardlights/", emoji: "📘" },
+      instagram: { label: "Instagram", handle: "@hillardlights", url: "https://www.instagram.com/hillardlights/", emoji: "📸" },
       youtube: { label: "YouTube", handle: "@hillardlights", url: "https://www.youtube.com/@hillardlights", emoji: "▶" },
       tiktok: { label: "TikTok", handle: "@hillardlights", url: "https://www.tiktok.com/@hillardlights", emoji: "🎵" },
-      instagram: { label: "Instagram", handle: "@hillardlights", url: "https://www.instagram.com/hillardlights/", emoji: "📸" },
     },
   },
 } as const;

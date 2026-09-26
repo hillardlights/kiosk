@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { config } from "../config";
 import { useKiosk } from "../hooks/useKiosk";
 import type { Song } from "../state/types";
@@ -75,10 +75,20 @@ export function SongPicker() {
     return scopedSongs.filter((s) => s.category === category);
   }, [scopedSongs, category]);
 
-  const onTap = (songName: string) => {
-    if (globalBlock || queueFull || kioskLocked) return;
-    void actions.queueSong(songName);
-  };
+  // Stable ref to the latest gating flags so onSelect stays reference-stable
+  // for React.memo on SongCard — without this, every state tick would create
+  // a new function per card and defeat memoization.
+  const gateRef = useRef({ globalBlock, queueFull, kioskLocked });
+  gateRef.current = { globalBlock, queueFull, kioskLocked };
+
+  const onSelect = useCallback(
+    (songName: string) => {
+      const g = gateRef.current;
+      if (g.globalBlock || g.queueFull || g.kioskLocked) return;
+      void actions.queueSong(songName);
+    },
+    [actions],
+  );
 
   const hasNewSongs = newSongsSet.size > 0;
 
@@ -149,34 +159,33 @@ export function SongPicker() {
           </div>
         ) : (
           <ul className="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
-            {visibleSongs.map((song) => (
-              <SongCard
-                key={song.name}
-                song={song}
-                isCurrent={song.name === currentSongName}
-                isQueued={queuedSongNames.has(song.name)}
-                isKioskQueued={kioskQueuedSet.has(song.name)}
-                showNewBadge={hasNewSongs && scope === "all" && isNewSong(song)}
-                feedbackKind={
-                  feedback && feedback.songName === song.name ? feedback.kind : null
-                }
-                feedbackMessage={
-                  feedback &&
-                  feedback.songName === song.name &&
-                  feedback.kind === "error"
-                    ? feedback.message
-                    : null
-                }
-                disabled={
-                  globalBlock ||
-                  queueFull ||
-                  kioskLocked ||
-                  song.name === currentSongName ||
-                  queuedSongNames.has(song.name)
-                }
-                onTap={() => onTap(song.name)}
-              />
-            ))}
+            {visibleSongs.map((song) => {
+              const matchesFeedback = feedback && feedback.songName === song.name;
+              return (
+                <SongCard
+                  key={song.name}
+                  song={song}
+                  isCurrent={song.name === currentSongName}
+                  isQueued={queuedSongNames.has(song.name)}
+                  isKioskQueued={kioskQueuedSet.has(song.name)}
+                  showNewBadge={hasNewSongs && scope === "all" && isNewSong(song)}
+                  feedbackKind={matchesFeedback ? feedback.kind : null}
+                  feedbackMessage={
+                    matchesFeedback && feedback.kind === "error"
+                      ? feedback.message
+                      : null
+                  }
+                  disabled={
+                    globalBlock ||
+                    queueFull ||
+                    kioskLocked ||
+                    song.name === currentSongName ||
+                    queuedSongNames.has(song.name)
+                  }
+                  onSelect={onSelect}
+                />
+              );
+            })}
           </ul>
         )}
       </div>
@@ -253,17 +262,7 @@ function ScopePill({
   );
 }
 
-function SongCard({
-  song,
-  isCurrent,
-  isQueued,
-  isKioskQueued,
-  showNewBadge,
-  feedbackKind,
-  feedbackMessage,
-  disabled,
-  onTap,
-}: {
+type SongCardProps = {
   song: Song;
   isCurrent: boolean;
   isQueued: boolean;
@@ -272,8 +271,20 @@ function SongCard({
   feedbackKind: "queued" | "error" | null;
   feedbackMessage: string | null;
   disabled: boolean;
-  onTap: () => void;
-}) {
+  onSelect: (name: string) => void;
+};
+
+const SongCard = memo(function SongCard({
+  song,
+  isCurrent,
+  isQueued,
+  isKioskQueued,
+  showNewBadge,
+  feedbackKind,
+  feedbackMessage,
+  disabled,
+  onSelect,
+}: SongCardProps) {
   const cls = isCurrent
     ? "border-accent-500/50 bg-accent-500/15"
     : feedbackKind === "queued"
@@ -302,7 +313,7 @@ function SongCard({
     <li className="song-card">
       <button
         type="button"
-        onClick={onTap}
+        onClick={() => onSelect(song.name)}
         disabled={disabled}
         className={
           "group relative flex w-full flex-col overflow-hidden rounded-2xl border text-left transition-colors " +
@@ -345,7 +356,7 @@ function SongCard({
       </button>
     </li>
   );
-}
+});
 
 function isQueueFull(jukeboxDepth: number, currentLength: number): boolean {
   if (jukeboxDepth <= 0) return false;

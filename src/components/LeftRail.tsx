@@ -49,15 +49,12 @@ export function LeftRail({
         onClick={onBrandTap}
         aria-label={brand.name}
         className={
-          "mx-2 mb-4 flex flex-col items-center gap-1 rounded-2xl py-3 transition select-none " +
+          "mx-2 mb-4 flex items-center justify-center rounded-2xl py-4 transition select-none " +
           (flash ? "bg-accent-500/25" : "bg-white/[0.03] hover:bg-white/[0.06]")
         }
       >
         <span className="text-3xl leading-none" aria-hidden>
           {brand.seasonEmoji}
-        </span>
-        <span className="text-[0.55rem] font-semibold uppercase tracking-[0.35em] text-accent-300/80">
-          {brand.seasonYear}
         </span>
       </button>
 

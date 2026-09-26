@@ -4,7 +4,7 @@ import { useKiosk } from "../hooks/useKiosk";
 import { AlbumArt } from "./AlbumArt";
 
 type SocialKey = keyof typeof config.brand.socials;
-const SOCIAL_ORDER: SocialKey[] = ["instagram", "youtube", "tiktok"];
+const SOCIAL_ORDER: SocialKey[] = ["facebook", "instagram", "youtube", "tiktok"];
 
 export function AttractOverlay({ onDismiss }: { onDismiss: () => void }) {
   const { state } = useKiosk();
@@ -71,7 +71,7 @@ export function AttractOverlay({ onDismiss }: { onDismiss: () => void }) {
           <p className="mb-4 text-center text-[0.65rem] font-semibold uppercase tracking-[0.5em] text-neutral-400">
             Follow along
           </p>
-          <div className="grid grid-cols-3 gap-3">
+          <div className="grid grid-cols-4 gap-3">
             {SOCIAL_ORDER.map((key) => {
               const s = brand.socials[key];
               return (

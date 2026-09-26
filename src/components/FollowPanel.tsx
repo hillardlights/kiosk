@@ -2,7 +2,7 @@ import { QRCodeSVG } from "qrcode.react";
 import { config } from "../config";
 
 type SocialKey = keyof typeof config.brand.socials;
-const SOCIAL_ORDER: SocialKey[] = ["instagram", "youtube", "tiktok"];
+const SOCIAL_ORDER: SocialKey[] = ["facebook", "instagram", "youtube", "tiktok"];
 
 export function FollowPanel() {
   const { brand } = config;
