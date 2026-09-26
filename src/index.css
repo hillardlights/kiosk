@@ -272,12 +272,22 @@ button:disabled {
   to   { transform: scaleY(1.8); }
 }
 
-/* Promote the audio card to its own compositor layer so tap-down scale
-   feedback lands on the very next frame — otherwise the state change
-   also invalidates paint on the parent rail and touch feels laggy. */
+/* Promote the audio card to its own compositor layer so tap-down feedback
+   lands on the very next frame — otherwise the state change also
+   invalidates paint on the parent rail and touch feels laggy. Explicit
+   touch-action defends against Chromium's synthesized-click delay in
+   case a wider selector loses out to specificity. */
 .audio-card {
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
   will-change: transform;
   transform: translateZ(0);
+  transition: filter 60ms ease-out;
+}
+
+.audio-card.tapped {
+  filter: brightness(1.35);
 }
 
 /* Rail-sized audio card idle-state breath — subtler than the big button
