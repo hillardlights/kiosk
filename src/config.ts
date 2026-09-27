@@ -106,7 +106,7 @@ export const config = {
     siteUrl: "https://hillardlights.com",
     season,
     seasonYear: envNumber("VITE_SEASON_YEAR", 2026),
-    seasonEmoji: season === "halloween" ? "🎃" : "🎄",
+    seasonEmoji: season === "halloween" ? "👻" : "🎄",
     seasonLabel: season === "halloween" ? "Halloween" : "Christmas",
     fmFrequency: envString("VITE_FM_FREQUENCY", "105.3 FM"),
     socials: {
