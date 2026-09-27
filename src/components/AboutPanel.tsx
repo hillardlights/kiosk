@@ -27,6 +27,10 @@ const FAQ: FaqItem[] = [
     a: "This is year six. Year one back in 2021 started with about 8,000 addressable pixels, but a lot of the display still ran on simple on/off controllers driving traditional non-addressable strings — a whole bar could change color, but not individual pixels. Six years later everything's fully addressable end-to-end, so every pixel, every color, every beat gets choreographed per song. No fixed yearly theme required — we adapt to whatever the song calls for. Cable management is a full-time hobby, and the extension cord count remains alarming.",
   },
   {
+    q: "Where do you get all these props?",
+    a: "The majority come from Gilbert Engineering — an amazing local operation headquartered in Florence, AZ. Quick drive to pick up top-quality props, and it feels good supporting a local business. The four singing pumpkins are from Boscoyo Studios. The pumpkin arch started life as a Home Depot arch in 2024 — I carved the faces and rigged a puck light behind each so every pumpkin can go its own color independently. The window matrices and shutters I built from scratch. The stage truss is the same concert-grade steel you'd see under a touring rig; I wrapped it in a 1-inch pixel sheet and modeled it in xLights myself. The coach lights are Philips Hue bulbs driven by a custom controller I wrote on a Raspberry Pi — it talks to the Hue API and lets each bulb be addressed independently inside a sequence. Projector's a plain-Jane Epson pushing 4,600 lumens.",
+  },
+  {
     q: "Isn't your power bill insane?",
     a: "Everyone assumes this must cost a fortune to run. It doesn't. In 2025 the show only added about $30 to a normal month's electricity bill — because the pixels run at 20% brightness (plenty bright at night, easier on the LEDs and the meter) and the controllers only power up for the ~3–4 hours the show is actually running each evening, not 24/7. That said, when it does hit peak, it hits hard: we added 4 dedicated 20-amp circuits just to feed the display, and each of the 8 DMX moving-head beams pulls 400 watts at peak — 3,200 watts of beam alone.",
   },
