@@ -32,7 +32,15 @@ const FAQ: FaqItem[] = [
   },
   {
     q: "Is this your job?",
-    a: "Sort of adjacent. By day I'm a software engineer. By night I write code that bosses around 30,000 LEDs. Nobody pays me for the second part — this is a hobby that got wildly out of hand, and I wouldn't have it any other way.",
+    a: "Not my day job — that's software engineering. Lights aren't full-time either, though I do dabble as a contractor for a sequence vendor on the side. Turns out the same brain that debugs code all day is happy to spend the night choreographing 34,000 pixels to a beat drop.",
+  },
+  {
+    q: "Do you program all these songs yourself?",
+    a: "Mixed. Some I write end-to-end — every effect, every keyframe, every timing tweak. Others I buy from sequence vendors and adapt to fit my prop layout and design preferences. Talent is everywhere; I'd rather run what inspires me than reinvent it from scratch every time.",
+  },
+  {
+    q: "How long does it take to sequence a song?",
+    a: "Depends on the ambition. Adapting a vendor sequence to my layout with minor tweaks is 2–3 days. A fully custom, from-scratch sequence starts at about a week and can stretch to several months, depending on song length, prop coverage, and how many custom effects I dream up along the way.",
   },
 ];
 
