@@ -41,6 +41,7 @@ if [[ $APP_ONLY -eq 0 ]]; then
     openbox \
     unclutter \
     fonts-inter \
+    fonts-noto-color-emoji \
     curl \
     ca-certificates \
     gnupg
