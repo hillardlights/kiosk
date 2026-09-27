@@ -53,8 +53,11 @@ export function LeftRail({
           (flash ? "bg-accent-500/25" : "bg-white/[0.03] hover:bg-white/[0.06]")
         }
       >
-        <span className="text-3xl leading-none" aria-hidden>
-          {brand.seasonEmoji}
+        <span
+          className="brand-title text-3xl font-black uppercase leading-none tracking-[0.08em]"
+          aria-hidden
+        >
+          HL
         </span>
       </button>
 
