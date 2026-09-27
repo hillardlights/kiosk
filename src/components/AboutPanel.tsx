@@ -24,7 +24,7 @@ const FAQ: FaqItem[] = [
   },
   {
     q: "How long have you been doing this?",
-    a: "This is year six. Year one back in 2021 was around 8,000 old-school non-addressable LED strands — the traditional twinkle-light kind — and a whole lot of trial and error. Six years in it's grown into 34,000 individually-addressable pixels, spreadsheet-driven prop layouts, and a truly alarming amount of extension cord.",
+    a: "This is year six. Year one back in 2021 started with about 8,000 addressable pixels, but a lot of the display still ran on simple on/off controllers driving traditional non-addressable strings — a whole bar could change color, but not individual pixels. Six years later everything's fully addressable end-to-end, so every pixel, every color, every beat gets choreographed per song. No fixed yearly theme required — we adapt to whatever the song calls for. Cable management is a full-time hobby, and the extension cord count remains alarming.",
   },
   {
     q: "Isn't your power bill insane?",
