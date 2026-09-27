@@ -31,10 +31,6 @@ const FAQ: FaqItem[] = [
     a: "Everyone assumes this must cost a fortune to run. It doesn't. In 2025 the show only added about $30 to a normal month's electricity bill — because the pixels run at 20% brightness (plenty bright at night, easier on the LEDs and the meter) and the controllers only power up for the ~3–4 hours the show is actually running each evening, not 24/7. That said, when it does hit peak, it hits hard: we added 4 dedicated 20-amp circuits just to feed the display, and each of the 8 DMX moving-head beams pulls 400 watts at peak — 3,200 watts of beam alone.",
   },
   {
-    q: `How do I actually hear the music?`,
-    a: `Tune your car radio to ${config.brand.fmFrequency} in the driveway. The audio's synced to whatever song is playing on the display right now — including anything a visitor just picked on this kiosk.`,
-  },
-  {
     q: "Is this your job?",
     a: "Sort of adjacent. By day I'm a software engineer. By night I write code that bosses around 30,000 LEDs. Nobody pays me for the second part — this is a hobby that got wildly out of hand, and I wouldn't have it any other way.",
   },
