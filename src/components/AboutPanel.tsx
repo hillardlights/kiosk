@@ -7,9 +7,9 @@ type Stat = {
 };
 
 const STATS: Stat[] = [
-  { value: "30,000+", label: "Pixels", caption: "individually addressable RGB" },
-  { value: "240+", label: "Props", caption: "hand-placed each season" },
-  { value: "6", label: "Years", caption: "since 2021" },
+  { value: "34,193", label: "Pixels", caption: "individually addressable RGB" },
+  { value: "264", label: "Props", caption: "hand-placed each season" },
+  { value: "13", label: "Controllers", caption: "driving the show" },
 ];
 
 type FaqItem = {
@@ -20,7 +20,7 @@ type FaqItem = {
 const FAQ: FaqItem[] = [
   {
     q: "How many lights are actually out there?",
-    a: "Over 30,000 individually-addressable RGB pixels, plus 8 DMX moving-head beams and 15 RGB flood lights. Halloween lights about 21,000 pixels at once — twin gothic gate matrices, a headless horseman, 4 singing pumpkins, 24 animated ghosts, and 16 flying bats. The Christmas swap reuses the house infrastructure and adds snowflakes, matrices, and holiday accents.",
+    a: "Exactly 34,193 individually-addressable RGB pixels driven by 13 controllers, plus 8 DMX moving-head beams and 15 DMX RGB floods — 9 × 30-watt on the eaves, 6 × 10-watt washing the walls. Halloween lights about 21,000 pixels at once: twin gothic gate matrices, a headless horseman, 4 singing pumpkins, 24 animated ghosts, and 16 flying bats. The Christmas swap keeps the house infrastructure and adds snowflakes, matrices, and holiday accents.",
   },
   {
     q: "How long have you been doing this?",
