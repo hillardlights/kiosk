@@ -7,9 +7,9 @@ type Stat = {
 };
 
 const STATS: Stat[] = [
-  { value: "30,000", label: "Pixels", caption: "individually addressable" },
-  { value: "6", label: "Years", caption: "and counting" },
-  { value: "$0", label: "Earned", caption: "it's a hobby, promise" },
+  { value: "30,000+", label: "Pixels", caption: "individually addressable RGB" },
+  { value: "240+", label: "Props", caption: "hand-placed each season" },
+  { value: "6", label: "Years", caption: "since 2021" },
 ];
 
 type FaqItem = {
@@ -20,11 +20,15 @@ type FaqItem = {
 const FAQ: FaqItem[] = [
   {
     q: "How many lights are actually out there?",
-    a: "Around 30,000 individually-addressable pixels. Each one has its own tiny brain, its own color, and very strong opinions about the beat drop.",
+    a: "Over 30,000 individually-addressable RGB pixels, plus 8 DMX moving-head beams and 15 RGB flood lights. Halloween lights about 21,000 pixels at once — twin gothic gate matrices, a headless horseman, 4 singing pumpkins, 24 animated ghosts, and 16 flying bats. The Christmas swap reuses the house infrastructure and adds snowflakes, matrices, and holiday accents.",
   },
   {
     q: "How long have you been doing this?",
-    a: "This is year six. What started as \"a few strands on the porch\" has escalated into a full-blown obsession with cable management, spreadsheet-driven prop layouts, and a truly alarming amount of extension cord.",
+    a: "This is year six. What started in 2021 as \"a few strands on the porch\" has escalated into a full-blown obsession with cable management, spreadsheet-driven prop layouts, and a truly alarming amount of extension cord.",
+  },
+  {
+    q: `How do I actually hear the music?`,
+    a: `Tune your car radio to ${config.brand.fmFrequency} in the driveway. The audio's synced to whatever song is playing on the display right now — including anything a visitor just picked on this kiosk.`,
   },
   {
     q: "Is this your job?",
