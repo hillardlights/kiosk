@@ -24,7 +24,11 @@ const FAQ: FaqItem[] = [
   },
   {
     q: "How long have you been doing this?",
-    a: "This is year six. What started in 2021 as \"a few strands on the porch\" has escalated into a full-blown obsession with cable management, spreadsheet-driven prop layouts, and a truly alarming amount of extension cord.",
+    a: "This is year six. Year one back in 2021 was around 8,000 old-school non-addressable LED strands — the traditional twinkle-light kind — and a whole lot of trial and error. Six years in it's grown into 34,000 individually-addressable pixels, spreadsheet-driven prop layouts, and a truly alarming amount of extension cord.",
+  },
+  {
+    q: "Isn't your power bill insane?",
+    a: "Everyone assumes this must cost a fortune to run. It doesn't. In 2025 the show only added about $30 to a normal month's electricity bill — because the pixels run at 20% brightness (plenty bright at night, easier on the LEDs and the meter) and the controllers only power up for the ~3–4 hours the show is actually running each evening, not 24/7. That said, when it does hit peak, it hits hard: we added 4 dedicated 20-amp circuits just to feed the display, and each of the 8 DMX moving-head beams pulls 400 watts at peak — 3,200 watts of beam alone.",
   },
   {
     q: `How do I actually hear the music?`,
