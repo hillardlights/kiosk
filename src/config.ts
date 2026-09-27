@@ -102,7 +102,7 @@ export const config = {
   brand: {
     name: "Hillard Lights",
     tagline: "A residential light show synced to music",
-    motto: "Too many lights. Not enough regret.",
+    motto: "Subtle Was Never the Plan.",
     siteUrl: "https://hillardlights.com",
     season,
     seasonYear: envNumber("VITE_SEASON_YEAR", 2026),
