@@ -31,6 +31,10 @@ const FAQ: FaqItem[] = [
     a: "Everyone assumes this must cost a fortune to run. It doesn't. In 2025 the show only added about $30 to a normal month's electricity bill — because the pixels run at 20% brightness (plenty bright at night, easier on the LEDs and the meter) and the controllers only power up for the ~3–4 hours the show is actually running each evening, not 24/7. That said, when it does hit peak, it hits hard: we added 4 dedicated 20-amp circuits just to feed the display, and each of the 8 DMX moving-head beams pulls 400 watts at peak — 3,200 watts of beam alone.",
   },
   {
+    q: "Wait — those spotlights don't bother aircraft?",
+    a: "Nope, and we've done the homework. The airspace over our neighborhood stacks in three layers: Mesa Gateway Airport owns the lowest slice, then Phoenix Sky Harbor, then the FAA above them. I've spoken with all three, and each confirmed the DMX moving-head beams are non-impacting — the light disperses quickly and never reaches altitudes that would matter to aircraft. All three have our contact info if they ever need us to shut down fast. Always be in compliance.",
+  },
+  {
     q: "Is this your job?",
     a: "Not my day job — that's software engineering. Lights aren't full-time either, though I do dabble as a contractor for a sequence vendor on the side. Turns out the same brain that debugs code all day is happy to spend the night choreographing 34,000 pixels to a beat drop.",
   },
