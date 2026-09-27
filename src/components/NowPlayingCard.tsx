@@ -8,20 +8,24 @@ function clock(seconds: number): string {
   return `${m}:${rem.toString().padStart(2, "0")}`;
 }
 
-export function NowPlayingCard() {
+export function NowPlayingCard({ onPickSong }: { onPickSong?: () => void }) {
   const { state } = useKiosk();
   const np = state.nowPlaying;
 
   if (!np) {
     return (
-      <section className="rounded-3xl border border-white/8 bg-black/45 px-5 py-6 text-center backdrop-blur-md">
-        <p className="text-[0.65rem] font-semibold uppercase tracking-[0.5em] text-neutral-500">
+      <button
+        type="button"
+        onClick={onPickSong}
+        className="w-full rounded-3xl border border-accent-500/35 bg-accent-950/25 px-5 py-6 text-center backdrop-blur-md transition-colors hover:border-accent-400/60 hover:bg-accent-900/35 active:scale-[0.98]"
+      >
+        <p className="text-[0.65rem] font-semibold uppercase tracking-[0.5em] text-accent-300/80">
           Show idle
         </p>
-        <p className="mt-2 text-base font-semibold text-neutral-300">
-          Pick a song to start
+        <p className="mt-2 text-base font-bold text-accent-100">
+          Pick a song to start →
         </p>
-      </section>
+      </button>
     );
   }
 

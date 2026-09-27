@@ -68,7 +68,12 @@ export function Home() {
       </main>
 
       <aside className="relative flex h-full w-[360px] shrink-0 flex-col gap-4 border-l border-white/10 bg-black/40 px-4 py-6 backdrop-blur-md">
-        <NowPlayingCard />
+        <NowPlayingCard
+          onPickSong={() => {
+            setTab("songs");
+            setAttractOpen(false);
+          }}
+        />
         <div className="min-h-0 flex-1 overflow-hidden">
           <QueueList
             queue={state.queue}
