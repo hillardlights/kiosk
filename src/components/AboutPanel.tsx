@@ -42,6 +42,10 @@ const FAQ: FaqItem[] = [
     q: "How long does it take to sequence a song?",
     a: "Depends on the ambition. Adapting a vendor sequence to my layout with minor tweaks is 2–3 days. A fully custom, from-scratch sequence starts at about a week and can stretch to several months, depending on song length, prop coverage, and how many custom effects I dream up along the way.",
   },
+  {
+    q: "OK, but how much does this all cost?",
+    a: "Ha. I'll never tell. Worth every dollar, though — the kind words, letters, compliments, dancing in the driveway, smiles, and overall joy this brings the community outweighs any cost. Every season.",
+  },
 ];
 
 export function AboutPanel() {
