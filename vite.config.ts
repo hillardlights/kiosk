@@ -11,7 +11,7 @@ export default defineConfig({
       registerType: "autoUpdate",
       injectRegister: "auto",
       workbox: {
-        globPatterns: ["**/*.{js,css,html,svg,png,ico,woff2}"],
+        globPatterns: ["**/*.{js,css,html,svg,png,jpg,jpeg,webp,ico,woff2}"],
         // SPA fallback so any route serves index.html from cache when offline.
         navigateFallback: "/index.html",
         // Don't try to precache huge maps; keeps the SW light.
