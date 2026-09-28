@@ -35,7 +35,7 @@ export function AudioPanel() {
           icon="📻"
           eyebrow="In your car?"
           title={`Tune to ${fmFrequency}`}
-          body="Low-power broadcast reaches to the end of the driveway. Windows up, heat on, sing along."
+          body="Low-power broadcast — short range only. Windows up, AC blasting (even in October), sing along."
           tone="cool"
         />
         <InfoCard
