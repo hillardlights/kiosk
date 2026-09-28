@@ -42,7 +42,7 @@ export function AudioPanel() {
           icon="⏱️"
           eyebrow="Auto shut-off"
           title="6 minutes per tap"
-          body="Speakers turn themselves off so the neighbors don't file a petition. Tap again to keep them on."
+          body="Speakers run for 6 minutes, then switch off. Tap again to refresh the timer."
           tone="accent"
         />
       </div>
