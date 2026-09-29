@@ -299,8 +299,13 @@ function enrichImageUrl(
 }
 
 function snapshotFromRf(show: rf.RfShow): RfSnapshot {
+  // Hide the ambient "waiting" loop (the QR-code idle sequence) from the
+  // picker/queue — it's a background loop, not a requestable song. Effects
+  // gating (KioskContext -> PropButton) still uses the same config to
+  // decide when to unlock most effects.
+  const waitingName = config.waitingSequenceName;
   const availableSongs: Song[] = show.sequences
-    .filter((s) => s.active)
+    .filter((s) => s.active && (waitingName === "" || s.name !== waitingName))
     .sort((a, b) => (a.order ?? 0) - (b.order ?? 0))
     .map((s) => ({
       name: s.name,
