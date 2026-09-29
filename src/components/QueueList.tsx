@@ -129,7 +129,7 @@ export function QueueList({
                 </div>
                 <span className="shrink-0 text-[0.6rem] font-semibold uppercase tracking-widest">
                   {mine ? (
-                    <span className="text-emerald-300">Your request</span>
+                    <span className="text-emerald-300">In queue</span>
                   ) : isUpNext ? (
                     <span className="text-cool-200">Up next</span>
                   ) : (

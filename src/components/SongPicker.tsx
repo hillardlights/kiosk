@@ -333,7 +333,7 @@ const SongCard = memo(function SongCard({
       : feedbackKind === "error"
         ? { text: "Try again", tone: "text-rose-300" }
         : isKioskQueued
-          ? { text: "Your request", tone: "text-emerald-300" }
+          ? { text: "In queue", tone: "text-emerald-300" }
           : isQueued
             ? { text: "In queue", tone: "text-cool-300" }
             : { text: "Tap to queue", tone: "text-neutral-500" };
