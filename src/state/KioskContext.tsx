@@ -540,19 +540,29 @@ export function KioskProvider({ children }: { children: ReactNode }) {
     audioBusyRef.current = false;
   }, []);
 
-  // On mount: if a persisted audio expiry exists and has already passed,
-  // fire the OFF preset for safety and clear the stored value. The kiosk
-  // was dead when the timer would have expired, so this is our chance to
-  // catch up. FPP's own 6-min safety is still the ultimate backstop.
+  // On mount: sync FPP volume to whatever audio state we're booting in.
+  // The button UX ("TAP TO TURN ON") only makes sense if outdoor speakers
+  // are actually silent when state === "off" — but FPP itself powers on at
+  // full volume, so without this the button-off label lies until the first
+  // countdown expiry. Cases:
+  //   * Persisted expiry still valid → initialState resumed as "active";
+  //     leave volume alone (audioOn already fired last session, or fpp
+  //     retained it across the reload).
+  //   * Persisted expiry expired → clear it and mute; the timer would
+  //     have expired while the kiosk was down.
+  //   * No persisted expiry → default off; mute so the button matches
+  //     reality. FM broadcast is a separate audio path unaffected by
+  //     FPP's Volume Set.
   useEffect(() => {
+    if (config.demoMode) return;
     const persisted = readAudioExpiry();
-    if (persisted == null) return;
-    if (persisted > Date.now()) return; // still valid — initialState resumed it
-    clearAudioExpiry();
-    if (!config.demoMode) {
-      void fpp.setVolume(config.audioOffVolume).catch(() => {});
+    const now = Date.now();
+    if (persisted != null && persisted > now) return;
+    if (persisted != null) {
+      clearAudioExpiry();
+      console.info("[audio] cleared stale expiry on boot");
     }
-    console.info("[audio] cleared stale expiry on boot");
+    void fpp.setVolume(config.audioOffVolume).catch(() => {});
   }, []);
 
   // Auto-clear prop errors after a few seconds.
