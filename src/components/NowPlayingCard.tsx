@@ -65,6 +65,10 @@ export function NowPlayingCard({ onPickSong }: { onPickSong?: () => void }) {
           </div>
           <p className="mt-1.5 text-center font-mono text-xs tracking-wider text-neutral-400">
             {clock(np.elapsedSec)} / {clock(np.durationSec as number)}
+            {" · "}
+            <span className="text-accent-200">
+              {clock(Math.max(0, (np.durationSec as number) - np.elapsedSec))} left
+            </span>
           </p>
         </>
       ) : null}

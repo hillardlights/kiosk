@@ -175,6 +175,7 @@ function reducer(state: KioskState, action: Action): KioskState {
         imageUrl: null,
         category: null,
         active: true,
+        durationSec: durationSec ?? null,
       };
       return {
         ...state,
@@ -308,6 +309,7 @@ function snapshotFromRf(show: rf.RfShow): RfSnapshot {
       imageUrl: enrichImageUrl(s.name, s.displayName, s.imageUrl),
       category: s.category,
       active: s.active,
+      durationSec: s.duration,
     }));
 
   const songByName = new Map(availableSongs.map((s) => [s.name, s]));
@@ -325,6 +327,7 @@ function snapshotFromRf(show: rf.RfShow): RfSnapshot {
           imageUrl: enrichImageUrl(req.sequence.name, req.sequence.displayName, req.sequence.imageUrl),
           category: null,
           active: true,
+          durationSec: req.sequence.duration,
         },
     }));
 
@@ -339,6 +342,7 @@ function snapshotFromRf(show: rf.RfShow): RfSnapshot {
             imageUrl: enrichImageUrl(npSeq.name, npSeq.displayName, npSeq.imageUrl),
             category: null,
             active: true,
+            durationSec: npSeq.duration,
           },
         elapsedSec: 0,
         durationSec: npSeq.duration ?? null,

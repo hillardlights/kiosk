@@ -1,7 +1,18 @@
-import { useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { estimateEtaSec, formatEta } from "../services/eta";
+import { lookupFact } from "../songFacts";
 import type { KioskState, QueueItem, ShowStatus } from "../state/types";
 import { AlbumArt } from "./AlbumArt";
+
+// How long an expanded row stays open with no further interaction.
+const AUTO_COLLAPSE_MS = 8000;
+
+function clock(seconds: number): string {
+  const s = Math.max(0, Math.floor(seconds));
+  const m = Math.floor(s / 60);
+  const rem = s % 60;
+  return `${m}:${rem.toString().padStart(2, "0")}`;
+}
 
 export function QueueList({
   queue,
@@ -17,6 +28,24 @@ export function QueueList({
   const kioskSet = useMemo(() => new Set(kioskQueuedSongs), [kioskQueuedSongs]);
   const cap = showStatus.jukeboxDepth > 0 ? showStatus.jukeboxDepth : null;
   const capacityLabel = cap != null ? `${queue.length} / ${cap}` : `${queue.length}`;
+  const [expandedKey, setExpandedKey] = useState<string | null>(null);
+
+  // Auto-collapse after a beat of inactivity so the queue tidies itself.
+  useEffect(() => {
+    if (expandedKey == null) return;
+    const id = window.setTimeout(() => setExpandedKey(null), AUTO_COLLAPSE_MS);
+    return () => window.clearTimeout(id);
+  }, [expandedKey]);
+
+  // If the expanded item drops off the queue (song started playing, etc.),
+  // clear the expansion so no stale details linger.
+  useEffect(() => {
+    if (expandedKey == null) return;
+    const stillPresent = queue.some(
+      (item) => `${item.position}-${item.song.name}` === expandedKey,
+    );
+    if (!stillPresent) setExpandedKey(null);
+  }, [queue, expandedKey]);
 
   if (queue.length === 0) {
     return (
@@ -47,60 +76,100 @@ export function QueueList({
         {queue.map((item, idx) => {
           const isUpNext = idx === 0;
           const mine = kioskSet.has(item.song.name);
-          const etaSec = estimateEtaSec(idx, { nowPlaying });
+          const etaSec = estimateEtaSec(idx, { nowPlaying, queue });
+          const key = `${item.position}-${item.song.name}`;
+          const expanded = expandedKey === key;
+          const fact = lookupFact(item.song.name, item.song.displayName);
+          const durationLabel =
+            item.song.durationSec != null ? clock(item.song.durationSec) : null;
           return (
-            <li
-              key={`${item.position}-${item.song.name}`}
-              className={
-                "flex items-center gap-3 rounded-2xl border px-3 py-2.5 " +
-                (mine
-                  ? "border-emerald-400/45 bg-emerald-500/10"
-                  : isUpNext
-                    ? "border-cool-400/40 bg-cool-500/12"
-                    : "border-white/10 bg-white/[0.04]")
-              }
-            >
-              <span
+            <li key={key}>
+              <button
+                type="button"
+                onClick={() => setExpandedKey(expanded ? null : key)}
+                aria-expanded={expanded}
                 className={
-                  "flex h-8 w-8 shrink-0 items-center justify-center rounded-full font-mono text-sm font-bold " +
+                  "flex w-full items-center gap-3 rounded-2xl border px-3 py-2.5 text-left transition-colors " +
                   (mine
-                    ? "bg-emerald-500/25 text-emerald-100"
+                    ? "border-emerald-400/45 bg-emerald-500/10 hover:bg-emerald-500/15"
                     : isUpNext
-                      ? "bg-cool-500/25 text-cool-100"
-                      : "bg-white/10 text-neutral-300")
+                      ? "border-cool-400/40 bg-cool-500/12 hover:bg-cool-500/18"
+                      : "border-white/10 bg-white/[0.04] hover:bg-white/[0.07]")
                 }
-                aria-label={`Position ${idx + 1}`}
               >
-                {idx + 1}
-              </span>
-              <AlbumArt
-                imageUrl={item.song.imageUrl}
-                alt={item.song.displayName}
-                size="tiny"
-              />
-              <div className="min-w-0 flex-1">
-                <p className="truncate text-base font-semibold text-white">
-                  {item.song.displayName}
-                </p>
-                <div className="flex items-center gap-2 truncate text-xs text-neutral-400">
-                  {item.song.artist ? (
-                    <span className="truncate">{item.song.artist}</span>
-                  ) : null}
-                  {item.song.artist ? <span aria-hidden>·</span> : null}
-                  <span className="whitespace-nowrap text-neutral-500">
-                    {isUpNext ? "up next" : `plays in ${formatEta(etaSec)}`}
-                  </span>
+                <span
+                  className={
+                    "flex h-8 w-8 shrink-0 items-center justify-center rounded-full font-mono text-sm font-bold " +
+                    (mine
+                      ? "bg-emerald-500/25 text-emerald-100"
+                      : isUpNext
+                        ? "bg-cool-500/25 text-cool-100"
+                        : "bg-white/10 text-neutral-300")
+                  }
+                  aria-label={`Position ${idx + 1}`}
+                >
+                  {idx + 1}
+                </span>
+                <AlbumArt
+                  imageUrl={item.song.imageUrl}
+                  alt={item.song.displayName}
+                  size="tiny"
+                />
+                <div className="min-w-0 flex-1">
+                  <p className="truncate text-base font-semibold text-white">
+                    {item.song.displayName}
+                  </p>
+                  <div className="flex items-center gap-2 truncate text-xs text-neutral-400">
+                    {item.song.artist ? (
+                      <span className="truncate">{item.song.artist}</span>
+                    ) : null}
+                    {item.song.artist ? <span aria-hidden>·</span> : null}
+                    <span className="whitespace-nowrap text-neutral-500">
+                      {isUpNext ? "up next" : `plays in ${formatEta(etaSec)}`}
+                    </span>
+                  </div>
                 </div>
-              </div>
-              <span className="shrink-0 text-[0.6rem] font-semibold uppercase tracking-widest">
-                {mine ? (
-                  <span className="text-emerald-300">Your request</span>
-                ) : isUpNext ? (
-                  <span className="text-cool-200">Up next</span>
-                ) : (
-                  <span className="text-neutral-500">Queued</span>
-                )}
-              </span>
+                <span className="shrink-0 text-[0.6rem] font-semibold uppercase tracking-widest">
+                  {mine ? (
+                    <span className="text-emerald-300">Your request</span>
+                  ) : isUpNext ? (
+                    <span className="text-cool-200">Up next</span>
+                  ) : (
+                    <span className="text-neutral-500">Queued</span>
+                  )}
+                </span>
+              </button>
+              {expanded ? (
+                <div
+                  role="region"
+                  aria-label={`${item.song.displayName} details`}
+                  className="mt-1.5 ml-11 mr-2 rounded-xl border border-white/10 bg-black/40 px-3 py-2.5 text-xs text-neutral-300"
+                >
+                  <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-[0.7rem] uppercase tracking-widest text-neutral-500">
+                    {durationLabel ? (
+                      <span>
+                        <span className="text-neutral-600">Duration </span>
+                        <span className="font-mono text-cool-200">{durationLabel}</span>
+                      </span>
+                    ) : null}
+                    {item.song.category ? (
+                      <span>
+                        <span className="text-neutral-600">Category </span>
+                        <span className="text-accent-200">{item.song.category}</span>
+                      </span>
+                    ) : null}
+                  </div>
+                  {fact ? (
+                    <p className="mt-1.5 text-[0.78rem] leading-snug text-neutral-200">
+                      {fact}
+                    </p>
+                  ) : (
+                    <p className="mt-1.5 text-[0.75rem] italic text-neutral-500">
+                      No trivia on file for this one yet.
+                    </p>
+                  )}
+                </div>
+              ) : null}
             </li>
           );
         })}

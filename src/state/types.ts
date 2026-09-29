@@ -11,6 +11,7 @@ export type Song = {
   imageUrl: string | null;
   category: string | null;
   active: boolean;
+  durationSec: number | null;
 };
 
 export type QueueItem = {

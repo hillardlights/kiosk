@@ -10,6 +10,7 @@ export type RfSequence = {
   visibilityCount: number | null;
   active: boolean;
   index: number | null;
+  duration: number | null;
 };
 
 export type RfPlayingSequence = {
@@ -27,6 +28,7 @@ export type RfRequest = {
     displayName: string | null;
     artist: string | null;
     imageUrl: string | null;
+    duration: number | null;
   };
 };
 
@@ -74,10 +76,10 @@ const GET_SHOW_QUERY = `
       playingNextSequence { name displayName artist imageUrl duration }
       requests {
         position
-        sequence { name displayName artist imageUrl }
+        sequence { name displayName artist imageUrl duration }
       }
       sequences {
-        name displayName artist imageUrl category order visibilityCount active index
+        name displayName artist imageUrl category order visibilityCount active index duration
       }
       preferences {
         viewerControlEnabled viewerControlMode
