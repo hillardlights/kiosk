@@ -94,8 +94,12 @@ export const config = {
   rfSubdomain: envString("VITE_RF_SUBDOMAIN", "hillardlightshows"),
   rfPollMs: envNumber("VITE_RF_POLL_MS", 3000),
   rfPresenceMs: envNumber("VITE_RF_PRESENCE_MS", 30000),
-  audioOnPreset: envString("VITE_AUDIO_ON_PRESET", "KIOSK_AUDIO_ON"),
-  audioOffPreset: envString("VITE_AUDIO_OFF_PRESET", "KIOSK_AUDIO_OFF"),
+  // Audio on/off is a direct Volume Set (0–100) on the FPP rather than
+  // a named command preset — the preset list on the FPP gets wiped by
+  // reinstalls / config resets, and a missing preset silently 500s,
+  // leaving the speakers stuck on. Volume Set is a built-in command.
+  audioOnVolume: envNumber("VITE_AUDIO_ON_VOLUME", 70),
+  audioOffVolume: envNumber("VITE_AUDIO_OFF_VOLUME", 0),
   audioDurationSeconds: envNumber("VITE_AUDIO_DURATION_SECONDS", 360),
   pollIntervalMs: envNumber("VITE_POLL_INTERVAL_MS", 1000),
   demoMode: envBool("VITE_DEMO_MODE", true),

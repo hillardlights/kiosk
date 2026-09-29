@@ -86,6 +86,22 @@ export async function triggerPreset(
   return result;
 }
 
+// Direct volume control via FPP's built-in "Volume Set" command. Used by
+// the audio button so a wiped command-preset list on the FPP can't leave
+// the driveway speakers stuck at full volume.
+export async function setVolume(
+  level: number,
+  signal?: AbortSignal,
+): Promise<FppResult> {
+  const clamped = Math.min(100, Math.max(0, Math.round(level)));
+  const result = await req<unknown>(
+    `/api/command/Volume%20Set/${clamped}`,
+    signal,
+  );
+  if (result.ok) return { ok: true, data: undefined };
+  return result;
+}
+
 export async function getStatus(signal?: AbortSignal): Promise<FppResult<FppStatus>> {
   return req<FppStatus>("/api/system/status", signal);
 }

@@ -493,7 +493,7 @@ export function KioskProvider({ children }: { children: ReactNode }) {
     // just tells FPP to raise the actual speakers. Failures update the
     // connection dot; the show's own audio-off safety is the backstop.
     void fpp
-      .triggerPreset(config.audioOnPreset)
+      .setVolume(config.audioOnVolume)
       .then((result) => {
         if (result.ok) {
           dispatch({ type: "connection/fpp", state: "online" });
@@ -527,7 +527,7 @@ export function KioskProvider({ children }: { children: ReactNode }) {
 
     // Best-effort: FPP's own timer is the authoritative safety, so we always
     // reflect OFF in the UI regardless of whether the call succeeds.
-    const result = await fpp.triggerPreset(config.audioOffPreset);
+    const result = await fpp.setVolume(config.audioOffVolume);
     if (!result.ok) {
       console.warn("[audio] off failed (FPP safety timer still applies):", result.error);
       if (result.error.kind === "network") {
@@ -550,7 +550,7 @@ export function KioskProvider({ children }: { children: ReactNode }) {
     if (persisted > Date.now()) return; // still valid — initialState resumed it
     clearAudioExpiry();
     if (!config.demoMode) {
-      void fpp.triggerPreset(config.audioOffPreset).catch(() => {});
+      void fpp.setVolume(config.audioOffVolume).catch(() => {});
     }
     console.info("[audio] cleared stale expiry on boot");
   }, []);

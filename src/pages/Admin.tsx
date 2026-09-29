@@ -126,14 +126,14 @@ function AdminContent({ onClose }: { onClose: () => void }) {
             run={async () => {
               clearAudioExpiry();
               await actions.audioOff();
-              return "Cleared timer + fired KIOSK_AUDIO_OFF";
+              return `Cleared timer + set FPP volume to ${config.audioOffVolume}`;
             }}
           />
           <TestButton
             label="Fire test AUDIO ON"
             run={async () => {
               await actions.audioOn();
-              return "Sent KIOSK_AUDIO_ON — countdown active";
+              return `Set FPP volume to ${config.audioOnVolume} — countdown active`;
             }}
           />
         </div>
