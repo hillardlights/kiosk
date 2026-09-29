@@ -68,15 +68,18 @@ function envSeason(
   return fallback;
 }
 
-// Halloween starter set. Swap `preset` values to match the FPP command
-// preset names on your Pi. Add or remove entries freely; the UI adapts.
+// Halloween effect set. `preset` values must match FPP command-preset names
+// on the show controller — rename here if your FPP presets differ. Cooldowns
+// are 3 min for standard effects, 5 min for the fog-bubble machine which
+// needs longer to reheat between shots.
 const DEFAULT_PROPS: PropDef[] = [
-  { id: "fog",      label: "Fog Burst",   preset: "KIOSK_PROP_FOG",       emoji: "💨", cooldownSec: 30 },
-  { id: "spider",   label: "Spider Drop", preset: "KIOSK_PROP_SPIDER",    emoji: "🕷", cooldownSec: 45 },
-  { id: "scare",    label: "Jump Scare",  preset: "KIOSK_PROP_SCARE",     emoji: "👻", cooldownSec: 60 },
-  { id: "thunder",  label: "Thunderclap", preset: "KIOSK_PROP_THUNDER",   emoji: "⚡", cooldownSec: 20 },
-  { id: "eyes-on",  label: "Eyes On",     preset: "KIOSK_PROP_EYES_ON",   emoji: "👁", cooldownSec: 5 },
-  { id: "eyes-off", label: "Eyes Off",    preset: "KIOSK_PROP_EYES_OFF",  emoji: "💤", cooldownSec: 5 },
+  { id: "fobbles",   label: "Fobbles",           preset: "KIOSK_PROP_FOBBLES",   emoji: "🫧",  cooldownSec: 300, cooldownMessage: "Boiling more brew"  },
+  { id: "bats",      label: "Bat Frenzy",        preset: "KIOSK_PROP_BATS",      emoji: "🦇",  cooldownSec: 180, cooldownMessage: "Bats resettling"    },
+  { id: "thunder",   label: "Rolling Thunder",   preset: "KIOSK_PROP_THUNDER",   emoji: "⛈️",  cooldownSec: 180, cooldownMessage: "Storm gathering"    },
+  { id: "lightning", label: "Lightning Strike",  preset: "KIOSK_PROP_LIGHTNING", emoji: "⚡",  cooldownSec: 180, cooldownMessage: "Storing volts"      },
+  { id: "spider",    label: "Spider Boogie",     preset: "KIOSK_PROP_SPIDER",    emoji: "🕷️", cooldownSec: 180, cooldownMessage: "Legs cramping"      },
+  { id: "eyes-on",   label: "Wake the Watchers", preset: "KIOSK_PROP_EYES_ON",   emoji: "👁️", cooldownSec: 180, cooldownMessage: "Eyelids heavy"      },
+  { id: "tombstone", label: "Grave Whisper",     preset: "KIOSK_PROP_TOMBSTONE", emoji: "🪦",  cooldownSec: 180, cooldownMessage: "Skull remembering"  },
 ];
 
 const season = envSeason("VITE_SEASON", "halloween");

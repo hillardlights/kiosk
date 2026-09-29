@@ -13,7 +13,7 @@ export function PropPanel() {
         </p>
       </div>
       <div className="min-h-0 flex-1 overflow-y-auto pr-1 pb-4">
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-4 gap-3">
           {config.props.map((def) => (
             <PropButton key={def.id} def={def} />
           ))}

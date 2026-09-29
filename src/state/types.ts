@@ -32,6 +32,10 @@ export type PropDef = {
   preset: string;
   emoji: string;
   cooldownSec: number;
+  // Shown in place of the label while the effect is cooling, e.g.
+  // "Boiling more brew" — kept short (<= ~18 chars) so it fits the
+  // quarter-size button footprint.
+  cooldownMessage: string;
 };
 
 export type PropRuntime = {
