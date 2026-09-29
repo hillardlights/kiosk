@@ -36,12 +36,12 @@ export type PropDef = {
   // "Boiling more brew" — kept short (<= ~18 chars) so it fits the
   // quarter-size button footprint.
   cooldownMessage: string;
-  // Whether this effect stays enabled during the "waiting" ambient
-  // sequence (the idle loop RF plays when no requests are queued).
-  // Real music sequences always block every effect. Default true;
-  // set false for physically-constrained effects like the fog machine
-  // that shouldn't fire even during idle time.
-  allowDuringWaiting?: boolean;
+  // Whether this effect can safely fire while a real music sequence is
+  // playing. Defaults to false — most effects visually collide with the
+  // choreographed light programming. Set true for effects that don't
+  // touch the light channels (e.g. a fog-bubble machine) so they remain
+  // tappable during shows.
+  allowDuringSequence?: boolean;
 };
 
 export type PropRuntime = {

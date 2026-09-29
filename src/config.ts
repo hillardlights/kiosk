@@ -73,7 +73,7 @@ function envSeason(
 // are 3 min for standard effects, 5 min for the fog-bubble machine which
 // needs longer to reheat between shots.
 const DEFAULT_PROPS: PropDef[] = [
-  { id: "fobbles",   label: "Fobbles",           preset: "KIOSK_PROP_FOBBLES",   emoji: "🫧",  cooldownSec: 300, cooldownMessage: "Boiling more brew", allowDuringWaiting: false },
+  { id: "fobbles",   label: "Fobbles",           preset: "KIOSK_PROP_FOBBLES",   emoji: "🫧",  cooldownSec: 300, cooldownMessage: "Boiling more brew", allowDuringSequence: true  },
   { id: "bats",      label: "Bat Frenzy",        preset: "KIOSK_PROP_BATS",      emoji: "🦇",  cooldownSec: 180, cooldownMessage: "Bats resettling"    },
   { id: "thunder",   label: "Rolling Thunder",   preset: "KIOSK_PROP_THUNDER",   emoji: "⛈️",  cooldownSec: 180, cooldownMessage: "Storm gathering"    },
   { id: "lightning", label: "Lightning Strike",  preset: "KIOSK_PROP_LIGHTNING", emoji: "⚡",  cooldownSec: 180, cooldownMessage: "Storing volts"      },
@@ -103,9 +103,10 @@ export const config = {
   adminPin: envString("VITE_ADMIN_PIN", ""),
   newSongs: envStringArray("new_songs", []),
   // Name of the RF sequence that loops while the show is idle waiting for
-  // requests. Effects (except those with allowDuringWaiting=false) remain
-  // enabled while this specific sequence plays; any other sequence blocks
-  // all effects. Set to "" to disable the exception entirely.
+  // requests. All effects remain enabled while this specific sequence
+  // plays. Any other (real music) sequence blocks every effect except
+  // those flagged `allowDuringSequence: true`. Set to "" to treat every
+  // sequence as blocking.
   waitingSequenceName: envString("VITE_WAITING_SEQUENCE", "Ghostly Music Box"),
   props: DEFAULT_PROPS,
   brand: {

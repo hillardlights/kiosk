@@ -22,15 +22,15 @@ export function PropButton({ def }: { def: PropDef }) {
   const errorMsg = runtime?.lastError ?? null;
 
   // Effects are gated by what's on the wire so viewer taps can't collide
-  // with a choreographed sequence. Ambient waiting-loop is the exception:
-  // most props are still fair game there, but props flagged
-  // `allowDuringWaiting: false` (fobbles) stay locked until true idle.
+  // with a choreographed sequence. Idle time and the ambient waiting-loop
+  // leave everything unlocked. A real music sequence blocks every effect
+  // except those flagged `allowDuringSequence: true` (physical-only props
+  // like the fog-bubble machine that don't share light channels).
   const nowPlayingName = state.nowPlaying?.song.name ?? null;
   const waitingName = config.waitingSequenceName;
-  const inWaitingLoop = nowPlayingName !== null && waitingName !== "" && nowPlayingName === waitingName;
-  const propAllowedNow =
-    nowPlayingName === null || (inWaitingLoop && def.allowDuringWaiting !== false);
-  const showtimeBlocked = !propAllowedNow;
+  const inRealSequence =
+    nowPlayingName !== null && (waitingName === "" || nowPlayingName !== waitingName);
+  const showtimeBlocked = inRealSequence && def.allowDuringSequence !== true;
 
   useEffect(() => {
     if (!cooling) return;
@@ -89,11 +89,11 @@ export function PropButton({ def }: { def: PropDef }) {
         </>
       ) : showtimeBlocked ? (
         <>
-          <span className="line-clamp-2 text-center text-base font-bold uppercase tracking-widest leading-tight text-accent-200/80">
+          <span className="line-clamp-2 text-center text-base font-bold uppercase tracking-widest leading-tight text-accent-200/70">
             {def.label}
           </span>
-          <span className="text-xs uppercase tracking-widest text-accent-300/50">
-            {inWaitingLoop ? "Between shows" : "Enjoy the show"}
+          <span className="text-xs uppercase tracking-widest text-accent-300/60">
+            🔒 During show
           </span>
         </>
       ) : (
