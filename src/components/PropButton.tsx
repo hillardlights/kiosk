@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { config } from "../config";
 import { useKiosk } from "../hooks/useKiosk";
 import type { PropDef } from "../state/types";
 
@@ -20,13 +21,24 @@ export function PropButton({ def }: { def: PropDef }) {
   const remainingSec = cooling ? Math.max(0, (cooldownUntil - now) / 1000) : 0;
   const errorMsg = runtime?.lastError ?? null;
 
+  // Effects are gated by what's on the wire so viewer taps can't collide
+  // with a choreographed sequence. Ambient waiting-loop is the exception:
+  // most props are still fair game there, but props flagged
+  // `allowDuringWaiting: false` (fobbles) stay locked until true idle.
+  const nowPlayingName = state.nowPlaying?.song.name ?? null;
+  const waitingName = config.waitingSequenceName;
+  const inWaitingLoop = nowPlayingName !== null && waitingName !== "" && nowPlayingName === waitingName;
+  const propAllowedNow =
+    nowPlayingName === null || (inWaitingLoop && def.allowDuringWaiting !== false);
+  const showtimeBlocked = !propAllowedNow;
+
   useEffect(() => {
     if (!cooling) return;
     const id = window.setInterval(() => setNow(Date.now()), 500);
     return () => window.clearInterval(id);
   }, [cooling]);
 
-  const disabled = offline || cooling;
+  const disabled = offline || cooling || showtimeBlocked;
 
   return (
     <button
@@ -40,15 +52,17 @@ export function PropButton({ def }: { def: PropDef }) {
           ? "border-rose-500/40 bg-rose-950/40 text-rose-100"
           : cooling
             ? "border-white/10 bg-white/[0.04] text-neutral-500"
-            : offline
-              ? "border-rose-500/25 bg-rose-950/20 text-rose-200/60"
-              : "border-accent-500/30 bg-gradient-to-b from-accent-950/60 to-black/70 text-accent-100 shadow-[0_0_28px_rgb(var(--accent-rgb) / 0.18)]")
+            : showtimeBlocked
+              ? "border-accent-500/15 bg-accent-950/25 text-accent-200/60"
+              : offline
+                ? "border-rose-500/25 bg-rose-950/20 text-rose-200/60"
+                : "border-accent-500/30 bg-gradient-to-b from-accent-950/60 to-black/70 text-accent-100 shadow-[0_0_28px_rgb(var(--accent-rgb) / 0.18)]")
       }
     >
       <span
         className={
           "text-6xl leading-none " +
-          (cooling
+          (cooling || showtimeBlocked
             ? "opacity-40"
             : "drop-shadow-[0_0_16px_rgb(var(--accent-rgb) / 0.55)]")
         }
@@ -71,6 +85,15 @@ export function PropButton({ def }: { def: PropDef }) {
           </span>
           <span className="font-mono text-2xl font-bold tracking-wider text-cool-200">
             {formatCooldown(remainingSec)}
+          </span>
+        </>
+      ) : showtimeBlocked ? (
+        <>
+          <span className="line-clamp-2 text-center text-base font-bold uppercase tracking-widest leading-tight text-accent-200/80">
+            {def.label}
+          </span>
+          <span className="text-xs uppercase tracking-widest text-accent-300/50">
+            {inWaitingLoop ? "Between shows" : "Enjoy the show"}
           </span>
         </>
       ) : (
