@@ -7,7 +7,11 @@
 // doesn't populate imageUrl).
 
 export const ARTWORK_MANIFEST: Record<string, string> = {
-  // "Wizards in Winter - Trans-Siberian Orchestra": "/artwork/wizards-in-winter.jpg",
+  "Abracadabra - Lady Gaga": "/artwork/Abracadabra - Lady Gaga.jpg",
+  "Back to the Future": "/artwork/Back to the Future.jpg",
+  "Burial - Anne Hathaway": "/artwork/Burial - Anne Hathaway.jpg",
+  "Burnin' Up - Jonas Brothers": "/artwork/Burnin' Up - Jonas Brothers.webp",
+  "James Bond Collection": "/artwork/James Bond Collection.jpg",
 };
 
 export function lookupArtwork(sequenceName: string): string | null {

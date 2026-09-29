@@ -287,8 +287,12 @@ function normalizeMode(raw: string | null | undefined): ViewerControlMode | null
   return null;
 }
 
-function enrichImageUrl(name: string, imageUrl: string | null): string | null {
-  return imageUrl ?? lookupArtwork(name);
+function enrichImageUrl(
+  name: string,
+  displayName: string | null | undefined,
+  imageUrl: string | null,
+): string | null {
+  return imageUrl ?? lookupArtwork(name) ?? (displayName ? lookupArtwork(displayName) : null);
 }
 
 function snapshotFromRf(show: rf.RfShow): RfSnapshot {
@@ -299,7 +303,7 @@ function snapshotFromRf(show: rf.RfShow): RfSnapshot {
       name: s.name,
       displayName: s.displayName ?? s.name,
       artist: s.artist,
-      imageUrl: enrichImageUrl(s.name, s.imageUrl),
+      imageUrl: enrichImageUrl(s.name, s.displayName, s.imageUrl),
       category: s.category,
       active: s.active,
     }));
@@ -316,7 +320,7 @@ function snapshotFromRf(show: rf.RfShow): RfSnapshot {
           name: req.sequence.name,
           displayName: req.sequence.displayName ?? req.sequence.name,
           artist: req.sequence.artist,
-          imageUrl: enrichImageUrl(req.sequence.name, req.sequence.imageUrl),
+          imageUrl: enrichImageUrl(req.sequence.name, req.sequence.displayName, req.sequence.imageUrl),
           category: null,
           active: true,
         },
@@ -330,7 +334,7 @@ function snapshotFromRf(show: rf.RfShow): RfSnapshot {
             name: npSeq.name,
             displayName: npSeq.displayName ?? npSeq.name,
             artist: npSeq.artist,
-            imageUrl: enrichImageUrl(npSeq.name, npSeq.imageUrl),
+            imageUrl: enrichImageUrl(npSeq.name, npSeq.displayName, npSeq.imageUrl),
             category: null,
             active: true,
           },
