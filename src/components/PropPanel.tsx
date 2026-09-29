@@ -12,8 +12,8 @@ export function PropPanel() {
           Tap once — each effect cools down before it can fire again.
         </p>
       </div>
-      <div className="min-h-0 flex-1 overflow-y-auto pr-1 pb-4">
-        <div className="grid grid-cols-4 gap-3">
+      <div className="min-h-0 flex-1">
+        <div className="grid h-full grid-cols-4 grid-rows-2 gap-3">
           {config.props.map((def) => (
             <PropButton key={def.id} def={def} />
           ))}

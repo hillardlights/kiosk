@@ -34,51 +34,51 @@ export function PropButton({ def }: { def: PropDef }) {
       onClick={() => void actions.triggerProp(def.id)}
       disabled={disabled}
       className={
-        "prop-button relative flex aspect-square w-full flex-col items-center justify-center " +
-        "gap-1 rounded-2xl border px-1.5 py-2 transition active:scale-[0.97] " +
+        "prop-button relative flex h-full w-full flex-col items-center justify-center " +
+        "gap-3 rounded-3xl border px-4 py-4 transition active:scale-[0.97] " +
         (errorMsg
           ? "border-rose-500/40 bg-rose-950/40 text-rose-100"
           : cooling
             ? "border-white/10 bg-white/[0.04] text-neutral-500"
             : offline
               ? "border-rose-500/25 bg-rose-950/20 text-rose-200/60"
-              : "border-accent-500/30 bg-gradient-to-b from-accent-950/60 to-black/70 text-accent-100 shadow-[0_0_20px_rgb(var(--accent-rgb) / 0.15)]")
+              : "border-accent-500/30 bg-gradient-to-b from-accent-950/60 to-black/70 text-accent-100 shadow-[0_0_28px_rgb(var(--accent-rgb) / 0.18)]")
       }
     >
       <span
         className={
-          "text-2xl leading-none " +
+          "text-6xl leading-none " +
           (cooling
             ? "opacity-40"
-            : "drop-shadow-[0_0_10px_rgb(var(--accent-rgb) / 0.5)]")
+            : "drop-shadow-[0_0_16px_rgb(var(--accent-rgb) / 0.55)]")
         }
       >
         {def.emoji}
       </span>
       {errorMsg ? (
         <>
-          <span className="line-clamp-2 text-center text-[0.65rem] font-bold uppercase tracking-wider leading-tight">
+          <span className="line-clamp-2 text-center text-base font-bold uppercase tracking-widest leading-tight">
             {def.label}
           </span>
-          <span className="line-clamp-2 text-center text-[0.55rem] font-semibold uppercase tracking-wider text-rose-200">
+          <span className="line-clamp-2 text-center text-xs font-semibold uppercase tracking-widest text-rose-200">
             {errorMsg}
           </span>
         </>
       ) : cooling ? (
         <>
-          <span className="line-clamp-2 text-center text-[0.6rem] font-semibold uppercase tracking-wider leading-tight text-neutral-400">
+          <span className="line-clamp-2 text-center text-sm font-semibold uppercase tracking-widest leading-tight text-neutral-400">
             {def.cooldownMessage}…
           </span>
-          <span className="font-mono text-[0.7rem] font-bold text-cool-200">
+          <span className="font-mono text-2xl font-bold tracking-wider text-cool-200">
             {formatCooldown(remainingSec)}
           </span>
         </>
       ) : (
         <>
-          <span className="line-clamp-2 text-center text-[0.65rem] font-bold uppercase tracking-wider leading-tight">
+          <span className="line-clamp-2 text-center text-base font-bold uppercase tracking-widest leading-tight">
             {def.label}
           </span>
-          <span className="text-[0.55rem] uppercase tracking-widest text-accent-300/60">
+          <span className="text-xs uppercase tracking-widest text-accent-300/70">
             {offline ? "Offline" : "Tap"}
           </span>
         </>

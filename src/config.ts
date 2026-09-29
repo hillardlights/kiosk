@@ -79,6 +79,7 @@ const DEFAULT_PROPS: PropDef[] = [
   { id: "lightning", label: "Lightning Strike",  preset: "KIOSK_PROP_LIGHTNING", emoji: "⚡",  cooldownSec: 180, cooldownMessage: "Storing volts"      },
   { id: "spider",    label: "Spider Boogie",     preset: "KIOSK_PROP_SPIDER",    emoji: "🕷️", cooldownSec: 180, cooldownMessage: "Legs cramping"      },
   { id: "eyes-on",   label: "Wake the Watchers", preset: "KIOSK_PROP_EYES_ON",   emoji: "👁️", cooldownSec: 180, cooldownMessage: "Eyelids heavy"      },
+  { id: "flood",     label: "Solar Flare",       preset: "KIOSK_PROP_FLOODLIGHT",emoji: "🔦",  cooldownSec: 180, cooldownMessage: "Bulbs cooling"      },
   { id: "tombstone", label: "Grave Whisper",     preset: "KIOSK_PROP_TOMBSTONE", emoji: "🪦",  cooldownSec: 180, cooldownMessage: "Skull remembering"  },
 ];
 
