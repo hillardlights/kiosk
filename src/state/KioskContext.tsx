@@ -292,7 +292,9 @@ function enrichImageUrl(
   displayName: string | null | undefined,
   imageUrl: string | null,
 ): string | null {
-  return imageUrl ?? lookupArtwork(name) ?? (displayName ? lookupArtwork(displayName) : null);
+  // RF returns '' (not null) when a sequence has no image, so use || to
+  // treat empty strings as absent and fall through to the local manifest.
+  return imageUrl || lookupArtwork(name) || (displayName ? lookupArtwork(displayName) : null);
 }
 
 function snapshotFromRf(show: rf.RfShow): RfSnapshot {
