@@ -1,6 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
 import { estimateEtaSec, formatEta } from "../services/eta";
-import { lookupFact } from "../songFacts";
 import type { KioskState, QueueItem, ShowStatus } from "../state/types";
 import { AlbumArt } from "./AlbumArt";
 
@@ -79,7 +78,6 @@ export function QueueList({
           const etaSec = estimateEtaSec(idx, { nowPlaying, queue });
           const key = `${item.position}-${item.song.name}`;
           const expanded = expandedKey === key;
-          const fact = lookupFact(item.song.name, item.song.displayName);
           const durationLabel =
             item.song.durationSec != null ? clock(item.song.durationSec) : null;
           return (
@@ -143,30 +141,17 @@ export function QueueList({
                 <div
                   role="region"
                   aria-label={`${item.song.displayName} details`}
-                  className="mt-1.5 ml-11 mr-2 rounded-xl border border-white/10 bg-black/40 px-3 py-2.5 text-xs text-neutral-300"
+                  className="mt-1.5 ml-11 mr-2 rounded-xl border border-white/10 bg-black/40 px-3 py-2"
                 >
-                  <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-[0.7rem] uppercase tracking-widest text-neutral-500">
-                    {durationLabel ? (
-                      <span>
-                        <span className="text-neutral-600">Duration </span>
-                        <span className="font-mono text-cool-200">{durationLabel}</span>
-                      </span>
-                    ) : null}
-                    {item.song.category ? (
-                      <span>
-                        <span className="text-neutral-600">Category </span>
-                        <span className="text-accent-200">{item.song.category}</span>
-                      </span>
-                    ) : null}
-                  </div>
-                  {fact ? (
-                    <p className="mt-1.5 text-[0.78rem] leading-snug text-neutral-200">
-                      {fact}
-                    </p>
+                  {durationLabel ? (
+                    <span className="text-[0.7rem] uppercase tracking-widest text-neutral-500">
+                      <span className="text-neutral-600">Duration </span>
+                      <span className="font-mono text-cool-200">{durationLabel}</span>
+                    </span>
                   ) : (
-                    <p className="mt-1.5 text-[0.75rem] italic text-neutral-500">
-                      No trivia on file for this one yet.
-                    </p>
+                    <span className="text-[0.7rem] italic tracking-wide text-neutral-500">
+                      Duration unavailable
+                    </span>
                   )}
                 </div>
               ) : null}

@@ -4,6 +4,7 @@ import { useKiosk } from "../hooks/useKiosk";
 import type { Song } from "../state/types";
 import { AlbumArt } from "./AlbumArt";
 import { CategoryChips } from "./CategoryChips";
+import { SongConfirmModal } from "./SongConfirmModal";
 
 type Scope = "all" | "new";
 
@@ -75,20 +76,36 @@ export function SongPicker() {
     return scopedSongs.filter((s) => s.category === category);
   }, [scopedSongs, category]);
 
-  // Stable ref to the latest gating flags so onSelect stays reference-stable
-  // for React.memo on SongCard — without this, every state tick would create
-  // a new function per card and defeat memoization.
+  // Stable refs so onSelect stays reference-stable for React.memo on
+  // SongCard — without this, every state tick would create a new function
+  // per card and defeat memoization.
   const gateRef = useRef({ globalBlock, queueFull, kioskLocked });
   gateRef.current = { globalBlock, queueFull, kioskLocked };
+  const songsRef = useRef(state.availableSongs);
+  songsRef.current = state.availableSongs;
 
-  const onSelect = useCallback(
-    (songName: string) => {
-      const g = gateRef.current;
-      if (g.globalBlock || g.queueFull || g.kioskLocked) return;
-      void actions.queueSong(songName);
-    },
-    [actions],
-  );
+  const [pendingSong, setPendingSong] = useState<Song | null>(null);
+
+  const onSelect = useCallback((songName: string) => {
+    const g = gateRef.current;
+    if (g.globalBlock || g.queueFull || g.kioskLocked) return;
+    const song = songsRef.current.find((s) => s.name === songName);
+    if (song) setPendingSong(song);
+  }, []);
+
+  // Auto-close the confirmation if the pending song's state changes such
+  // that queueing no longer makes sense (started playing, someone else
+  // queued it, queue filled up, etc.).
+  useEffect(() => {
+    if (!pendingSong) return;
+    const stillPickable =
+      !globalBlock &&
+      !queueFull &&
+      !kioskLocked &&
+      pendingSong.name !== currentSongName &&
+      !queuedSongNames.has(pendingSong.name);
+    if (!stillPickable) setPendingSong(null);
+  }, [pendingSong, globalBlock, queueFull, kioskLocked, currentSongName, queuedSongNames]);
 
   const hasNewSongs = newSongsSet.size > 0;
 
@@ -189,6 +206,18 @@ export function SongPicker() {
           </ul>
         )}
       </div>
+
+      {pendingSong ? (
+        <SongConfirmModal
+          song={pendingSong}
+          onConfirm={() => {
+            const name = pendingSong.name;
+            setPendingSong(null);
+            void actions.queueSong(name);
+          }}
+          onCancel={() => setPendingSong(null)}
+        />
+      ) : null}
     </div>
   );
 }
