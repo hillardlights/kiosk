@@ -30,6 +30,17 @@ fi
 # a single-user kiosk, so it's always safe to clear.
 rm -f "$PROFILE_DIR"/Singleton* 2>/dev/null || true
 
+# Service-worker + HTTP cache carry over across boots. If a stale SW
+# serves a pre-ship shell at startup, we can boot into old JS forever
+# on a nightly-reboot kiosk (bit us when the audio button fired
+# setVolume(0) from the pre-revert build). Wiping both before each
+# launch forces Chromium to fetch index.html + the current bundle
+# fresh. The PWA re-registers the SW on first page load, so this is
+# self-healing, not a one-way removal.
+rm -rf "$PROFILE_DIR/Default/Service Worker" \
+       "$PROFILE_DIR/Default/Cache" \
+       "$PROFILE_DIR/Default/Code Cache" 2>/dev/null || true
+
 exec "$CHROMIUM_BIN" \
   --kiosk \
   --noerrdialogs \
