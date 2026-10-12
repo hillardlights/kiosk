@@ -44,4 +44,4 @@ VITE_ADMIN_PIN=
 # the default "All" view. Songs not listed here are assumed to be
 # returning from prior years. Update once per season; safe to edit
 # on the running Pi and re-run generate-config.sh to apply.
-new_songs = James Bond Collection | Back to the Future | Burnin' Up - Jonas Brothers | Dracula - Tame Impala | Houdini Thriller Breath Mashup - Joshuel Mashups | Madame Leotas Swinging Wake - Disneyland | Monster - Skillet
+new_songs = James Bond Collection | Back to the Future | Burnin' Up - Jonas Brothers | Dracula - Tame Impala | Houdini Thriller Breath Mashup - Joshuel Mashups | Madame Leotas Swinging Wake - Disneyland | Monster - Skillet | Burial - Anne Hathaway | Ghost - Rob Thomas | Patient Zero - Taylor Swift | Rotten to the Core - Descendants | The Addams Family Theme | Twisting The Knife - Ice Nine Kills
