@@ -31,9 +31,11 @@ export const ARTWORK_MANIFEST: Record<string, string> = {
   "Spooky Scary Skeletons - Undead Tombstone Remix": "/artwork/Spooky Scary Skeletons - Undead Tombstone Remix.webp",
   "The Addams Family Theme": "/artwork/The Addams Family Theme.webp",
   "The Dead Dance - Lady Gaga": "/artwork/The Dead Dance - Lady Gaga.webp",
+  "The Fate of Ophelia - Taylor Swift": "/artwork/The Fate of Ophelia - Taylor Swift.webp",
   "This is Halloween - Marilyn Manson": "/artwork/This is Halloween - Marilyn Manson.webp",
   "Thriller - Michael Jackson": "/artwork/Thriller - Michael Jackson.webp",
   "Twisting The Knife - Ice Nine Kills": "/artwork/Twisting The Knife - Ice Nine Kills.webp",
+  "Whos Afraid of Little Old Me - Taylor Swift": "/artwork/Whos Afraid of Little Old Me - Taylor Swift.webp",
 };
 
 export function lookupArtwork(sequenceName: string): string | null {
