@@ -37,6 +37,12 @@ VITE_FM_FREQUENCY=105.3 FM
 # readable by anyone with physical access to the SD card.
 VITE_ADMIN_PIN=
 
+# Fresh Chromium launches mute FPP so the on-screen "TAP TO TURN ON"
+# button is honest. Set to false if the touchscreen is dead and the
+# only way to get audio back is to keep FPP's last volume at boot.
+# In-page reloads (PWA auto-update) always leave FPP alone regardless.
+cold_boot_mute = true
+
 # Songs that are new for the current season. Pipe-separated (|) list
 # of song display names, matched case-insensitively against the song
 # titles served by FPP. Songs listed here appear when the "New for

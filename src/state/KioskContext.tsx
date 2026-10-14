@@ -540,19 +540,36 @@ export function KioskProvider({ children }: { children: ReactNode }) {
     audioBusyRef.current = false;
   }, []);
 
-  // On mount: if a persisted audio expiry exists and has already passed,
-  // fire the OFF preset for safety and clear the stored value. The kiosk
-  // was dead when the timer would have expired, so this is our chance to
-  // catch up. FPP's own 6-min safety is still the ultimate backstop.
+  // On mount: mute FPP if this looks like a cold boot (fresh Chromium
+  // launch), leave it alone on an in-page reload. The PWA's auto-update
+  // triggers location.reload() mid-show; muting there silences the live
+  // show for everyone. Navigation type 'reload' catches that case; cold
+  // boots and the xinitrc crash-restart loop both land as 'navigate'.
+  // `coldBootMute` is an escape hatch for the touchscreen-dead case —
+  // if the user can't tap "audio on", keep whatever volume FPP has.
   useEffect(() => {
     const persisted = readAudioExpiry();
-    if (persisted == null) return;
-    if (persisted > Date.now()) return; // still valid — initialState resumed it
-    clearAudioExpiry();
+    if (persisted != null && persisted > Date.now()) return; // resumed in initialState
+    if (persisted != null) clearAudioExpiry();
+
+    const nav = performance.getEntriesByType("navigation")[0] as
+      | PerformanceNavigationTiming
+      | undefined;
+    const isReload = nav?.type === "reload";
+    if (isReload) {
+      console.info("[audio] in-page reload, leaving FPP volume alone");
+      return;
+    }
+
+    if (!config.coldBootMute) {
+      console.info("[audio] cold boot, cold_boot_mute=false — leaving FPP alone");
+      return;
+    }
+
     if (!config.demoMode) {
       void fpp.setVolume(config.audioOffVolume).catch(() => {});
     }
-    console.info("[audio] cleared stale expiry on boot");
+    console.info("[audio] cold boot, muted FPP");
   }, []);
 
   // Auto-clear prop errors after a few seconds.

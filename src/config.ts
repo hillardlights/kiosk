@@ -101,6 +101,10 @@ export const config = {
   audioOnVolume: envNumber("VITE_AUDIO_ON_VOLUME", 70),
   audioOffVolume: envNumber("VITE_AUDIO_OFF_VOLUME", 0),
   audioDurationSeconds: envNumber("VITE_AUDIO_DURATION_SECONDS", 360),
+  // Fresh Chromium launch mutes FPP so the "TAP TO TURN ON" button matches
+  // reality. Flip to false in /boot/firmware/kiosk.conf when the touchscreen
+  // is dead — otherwise audio can never be enabled from the kiosk UI.
+  coldBootMute: envBool("cold_boot_mute", true),
   pollIntervalMs: envNumber("VITE_POLL_INTERVAL_MS", 1000),
   demoMode: envBool("VITE_DEMO_MODE", true),
   demoAudioSeconds: envNumber("VITE_DEMO_AUDIO_SECONDS", 30),
