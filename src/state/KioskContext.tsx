@@ -540,36 +540,26 @@ export function KioskProvider({ children }: { children: ReactNode }) {
     audioBusyRef.current = false;
   }, []);
 
-  // On mount: mute FPP if this looks like a cold boot (fresh Chromium
-  // launch), leave it alone on an in-page reload. The PWA's auto-update
-  // triggers location.reload() mid-show; muting there silences the live
-  // show for everyone. Navigation type 'reload' catches that case; cold
-  // boots and the xinitrc crash-restart loop both land as 'navigate'.
-  // `coldBootMute` is an escape hatch for the touchscreen-dead case —
-  // if the user can't tap "audio on", keep whatever volume FPP has.
+  // On mount: force the FPP rock-speaker sink to match the kiosk's audio
+  // state (active → audioOnVolume, off → audioOffVolume). Runs on every
+  // mount, not just cold boot, so if the FPP sink drifts out of band
+  // (manual slider, direct curl, group config change) the kiosk pulls
+  // it back in line as soon as it loads. The PWA auto-update case is
+  // safe: a mid-show reload with a persisted active session re-asserts
+  // audioOnVolume (idempotent), and a reload with no active session
+  // re-asserts audioOffVolume — which is the invariant we actually want
+  // ("speakers only play when the button is active"). `coldBootMute`
+  // (misnomer kept for kiosk.conf compat) disables the whole sync for
+  // touchscreen-dead rescues where you need audio on regardless.
   useEffect(() => {
+    if (config.demoMode || !config.coldBootMute) return;
+
     const persisted = readAudioExpiry();
-    if (persisted != null && persisted > Date.now()) return; // resumed in initialState
-    if (persisted != null) clearAudioExpiry();
+    const isActive = persisted != null && persisted > Date.now();
+    if (persisted != null && !isActive) clearAudioExpiry();
 
-    const nav = performance.getEntriesByType("navigation")[0] as
-      | PerformanceNavigationTiming
-      | undefined;
-    const isReload = nav?.type === "reload";
-    if (isReload) {
-      console.info("[audio] in-page reload, leaving FPP volume alone");
-      return;
-    }
-
-    if (!config.coldBootMute) {
-      console.info("[audio] cold boot, cold_boot_mute=false — leaving FPP alone");
-      return;
-    }
-
-    if (!config.demoMode) {
-      void fpp.setVolume(config.audioOffVolume, config.audioTarget).catch(() => {});
-    }
-    console.info("[audio] cold boot, muted FPP");
+    const level = isActive ? config.audioOnVolume : config.audioOffVolume;
+    void fpp.setVolume(level, config.audioTarget).catch(() => {});
   }, []);
 
   // Auto-clear prop errors after a few seconds.

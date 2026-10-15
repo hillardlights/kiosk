@@ -37,10 +37,12 @@ VITE_FM_FREQUENCY=105.3 FM
 # readable by anyone with physical access to the SD card.
 VITE_ADMIN_PIN=
 
-# Fresh Chromium launches mute FPP so the on-screen "TAP TO TURN ON"
-# button is honest. Set to false if the touchscreen is dead and the
-# only way to get audio back is to keep FPP's last volume at boot.
-# In-page reloads (PWA auto-update) always leave FPP alone regardless.
+# When true (default), the kiosk re-asserts its audio state against
+# FPP on every mount — so "button off" always keeps the Rock Speakers
+# sink muted, even if the FPP volume drifted out of band (manual
+# slider, direct API call, etc.). Set to false only if the touchscreen
+# is dead and you need audio to stay on regardless of button state;
+# otherwise audio can never be enabled from the kiosk UI.
 cold_boot_mute = true
 
 # PipeWire sink the audio button targets. Both the Rock Speakers amp

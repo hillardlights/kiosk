@@ -102,17 +102,20 @@ export const config = {
   audioOffVolume: envNumber("VITE_AUDIO_OFF_VOLUME", 0),
   // PipeWire sink the audio button targets. FPP plays each sequence to
   // one group-sink, so to drive both the rock speakers and the FM
-  // transmitter we keep both USB cards as members of a single group
-  // ("Rock Speakers") and target the specific CODEC card here. Muting
-  // the card silences the driveway speakers while the FM card inside
-  // the same group keeps streaming to cars tuned in. Empty string =
-  // global Volume Set (nukes everything). Find the current sink IDs via
-  // `curl http://<fpp>/api/pipewire/audio/targets`.
+  // transmitter we keep both USB cards as members of a single output
+  // group on FPP and target the specific CODEC card (the amp) here.
+  // Muting the card silences the driveway speakers while the FM card
+  // inside the same group keeps streaming to cars tuned in. Empty
+  // string = global Volume Set (nukes everything). Find the current
+  // sink IDs via `curl http://<fpp>/api/pipewire/audio/targets`.
   audioTarget: envString("VITE_AUDIO_TARGET", "sink:fpp_fx_g1_codec"),
   audioDurationSeconds: envNumber("VITE_AUDIO_DURATION_SECONDS", 360),
-  // Fresh Chromium launch mutes FPP so the "TAP TO TURN ON" button matches
-  // reality. Flip to false in /boot/firmware/kiosk.conf when the touchscreen
-  // is dead — otherwise audio can never be enabled from the kiosk UI.
+  // Legacy name — now controls whether the kiosk re-asserts its audio
+  // state against FPP on every mount (not just cold boot). When true,
+  // "button off" always drives the Rock Speakers sink to audioOffVolume;
+  // "button on" (resumed from localStorage) drives it to audioOnVolume.
+  // Flip to false in /boot/firmware/kiosk.conf when the touchscreen is
+  // dead — otherwise audio can never be enabled from the kiosk UI.
   coldBootMute: envBool("cold_boot_mute", true),
   pollIntervalMs: envNumber("VITE_POLL_INTERVAL_MS", 1000),
   demoMode: envBool("VITE_DEMO_MODE", true),
