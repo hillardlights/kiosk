@@ -110,6 +110,18 @@ export const config = {
   demoAudioSeconds: envNumber("VITE_DEMO_AUDIO_SECONDS", 30),
   adminPin: envString("VITE_ADMIN_PIN", ""),
   newSongs: envStringArray("new_songs", []),
+  // Nightly show window (local time, minutes since midnight). Used by the
+  // AfterHoursPage: show the "that's a wrap" takeover between the show-end
+  // boundary and midnight; show the next-show countdown using the start
+  // minutes. Operators can override via /boot/firmware/kiosk.conf.
+  showStartMinutes: envNumber("VITE_SHOW_START_MINUTES", 18 * 60 + 30),
+  showEndMinutes: envNumber("VITE_SHOW_END_MINUTES", 21 * 60),
+  // Window during which the after-hours takeover is shown. Default is the
+  // show-end boundary through local midnight — if the kiosk is still on
+  // past midnight, it reverts to the normal UI (user's rule, so stale
+  // overnight sessions don't get stuck on the end-of-night splash).
+  afterHoursStartMinutes: envNumber("VITE_AFTERHOURS_START_MINUTES", 21 * 60),
+  afterHoursEndMinutes: envNumber("VITE_AFTERHOURS_END_MINUTES", 24 * 60),
   // Name of the RF sequence that loops while the show is idle waiting for
   // requests. All effects remain enabled while this specific sequence
   // plays. Any other (real music) sequence blocks every effect except

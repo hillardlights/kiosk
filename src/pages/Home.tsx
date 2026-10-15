@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { AboutPanel } from "../components/AboutPanel";
+import { AfterHoursPage } from "../components/AfterHoursPage";
 import { AttractOverlay } from "../components/AttractOverlay";
 import { AudioCard } from "../components/AudioCard";
 import { AudioPanel } from "../components/AudioPanel";
@@ -12,6 +13,7 @@ import { NowPlayingCard } from "../components/NowPlayingCard";
 import { PropPanel } from "../components/PropPanel";
 import { QueueList } from "../components/QueueList";
 import { SongPicker } from "../components/SongPicker";
+import { useAfterHours } from "../hooks/useAfterHours";
 import { useIdle } from "../hooks/useIdle";
 import { useKiosk } from "../hooks/useKiosk";
 import type { TabId } from "../state/types";
@@ -28,6 +30,7 @@ export function Home() {
   const [adminOpen, setAdminOpen] = useState(false);
   const [attractOpen, setAttractOpen] = useState(false);
   const isIdle = useIdle(ATTRACT_IDLE_MS);
+  const inAfterHours = useAfterHours();
 
   // Open the attract overlay when the user goes idle, but don't close it
   // when idle flips back to false — closing has to happen via an explicit
@@ -44,6 +47,19 @@ export function Home() {
     setAttractOpen(false);
     setTab("songs");
   };
+
+  // After-hours takeover: once the clock crosses the show-end boundary, hide
+  // the normal kiosk UI entirely and show only the end-of-night splash. Admin
+  // remains reachable via the hidden corner-tap gesture so the operator can
+  // still get into diagnostics.
+  if (inAfterHours) {
+    return (
+      <>
+        <AfterHoursPage onAdminGesture={() => setAdminOpen(true)} />
+        {adminOpen && <Admin onClose={() => setAdminOpen(false)} />}
+      </>
+    );
+  }
 
   return (
     <div className="relative flex h-dvh w-full overflow-hidden text-neutral-100">

@@ -484,3 +484,86 @@ button,
     animation: none !important;
   }
 }
+
+/* After-hours takeover
+ * ----------------------------------------------------------------
+ * Fades the page in on handoff, breathes the hours card, bobs the
+ * season emoji, and drifts ambient particles down the screen. All
+ * animations are opacity+transform only so they stay cheap on the
+ * Pi. The `--sway` custom property lets each particle wander on a
+ * different horizontal arc without needing per-particle keyframes.
+ * ---------------------------------------------------------------- */
+
+.afterhours-root {
+  animation: afterhours-fade-in 700ms ease-out both;
+}
+
+@keyframes afterhours-fade-in {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.afterhours-emoji {
+  display: inline-block;
+  animation: afterhours-emoji 5s ease-in-out infinite;
+  filter: drop-shadow(0 0 24px rgb(var(--accent-rgb) / 0.55));
+}
+
+@keyframes afterhours-emoji {
+  0%, 100% { transform: translateY(0) rotate(-4deg); }
+  50%      { transform: translateY(-12px) rotate(4deg); }
+}
+
+.afterhours-hours-card {
+  animation: afterhours-hours-glow 4.5s ease-in-out infinite;
+}
+
+@keyframes afterhours-hours-glow {
+  0%, 100% {
+    box-shadow:
+      0 0 0 1px rgb(var(--accent-rgb) / 0.08) inset,
+      0 0 50px -10px rgb(var(--accent-rgb) / 0.35);
+  }
+  50% {
+    box-shadow:
+      0 0 0 1px rgb(var(--accent-rgb) / 0.15) inset,
+      0 0 90px -10px rgb(var(--accent-rgb) / 0.75);
+  }
+}
+
+.afterhours-hours {
+  text-shadow:
+    0 0 30px rgb(var(--accent-rgb) / 0.35),
+    0 0 70px rgb(var(--accent-rgb) / 0.2);
+}
+
+.afterhours-particle {
+  position: absolute;
+  top: -12vh;
+  pointer-events: none;
+  user-select: none;
+  will-change: transform, opacity;
+  animation-name: afterhours-drift;
+  animation-timing-function: linear;
+  animation-iteration-count: infinite;
+  filter: drop-shadow(0 0 10px rgb(var(--cool-rgb) / 0.55));
+}
+
+@keyframes afterhours-drift {
+  0%   { transform: translate3d(0, 0, 0) rotate(-8deg); opacity: 0; }
+  10%  { opacity: 0.75; }
+  85%  { opacity: 0.75; }
+  100% {
+    transform: translate3d(var(--sway, 30px), 118vh, 0) rotate(14deg);
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .afterhours-root,
+  .afterhours-emoji,
+  .afterhours-hours-card,
+  .afterhours-particle {
+    animation: none !important;
+  }
+}
