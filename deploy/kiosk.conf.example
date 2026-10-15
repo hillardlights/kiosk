@@ -43,6 +43,13 @@ VITE_ADMIN_PIN=
 # In-page reloads (PWA auto-update) always leave FPP alone regardless.
 cold_boot_mute = true
 
+# PipeWire sink the audio button targets. Scoping to Rock Speakers only
+# lets cars keep listening on the FM Transmitter when the kiosk's audio
+# timer expires. Empty string reverts to the pre-split global Volume Set.
+# To find current sink IDs on the FPP:
+#   curl http://<fpp-ip>/api/pipewire/audio/targets
+VITE_AUDIO_TARGET=sink:fpp_group_rock_speakers
+
 # Songs that are new for the current season. Pipe-separated (|) list
 # of song display names, matched case-insensitively against the song
 # titles served by FPP. Songs listed here appear when the "New for

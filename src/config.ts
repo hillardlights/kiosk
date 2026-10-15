@@ -100,6 +100,12 @@ export const config = {
   // leaving the speakers stuck on. Volume Set is a built-in command.
   audioOnVolume: envNumber("VITE_AUDIO_ON_VOLUME", 70),
   audioOffVolume: envNumber("VITE_AUDIO_OFF_VOLUME", 0),
+  // PipeWire sink the audio button targets. Scoping to the Rock Speakers
+  // group lets us mute the driveway speakers on timer-expiry without also
+  // silencing the FM Transmitter (which cars tune into). Empty string =
+  // global Volume Set (pre-split behavior). Find the current sink IDs via
+  // `curl http://<fpp>/api/pipewire/audio/targets`.
+  audioTarget: envString("VITE_AUDIO_TARGET", "sink:fpp_group_rock_speakers"),
   audioDurationSeconds: envNumber("VITE_AUDIO_DURATION_SECONDS", 360),
   // Fresh Chromium launch mutes FPP so the "TAP TO TURN ON" button matches
   // reality. Flip to false in /boot/firmware/kiosk.conf when the touchscreen

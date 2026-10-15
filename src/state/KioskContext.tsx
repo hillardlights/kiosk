@@ -493,7 +493,7 @@ export function KioskProvider({ children }: { children: ReactNode }) {
     // just tells FPP to raise the actual speakers. Failures update the
     // connection dot; the show's own audio-off safety is the backstop.
     void fpp
-      .setVolume(config.audioOnVolume)
+      .setVolume(config.audioOnVolume, config.audioTarget)
       .then((result) => {
         if (result.ok) {
           dispatch({ type: "connection/fpp", state: "online" });
@@ -527,7 +527,7 @@ export function KioskProvider({ children }: { children: ReactNode }) {
 
     // Best-effort: FPP's own timer is the authoritative safety, so we always
     // reflect OFF in the UI regardless of whether the call succeeds.
-    const result = await fpp.setVolume(config.audioOffVolume);
+    const result = await fpp.setVolume(config.audioOffVolume, config.audioTarget);
     if (!result.ok) {
       console.warn("[audio] off failed (FPP safety timer still applies):", result.error);
       if (result.error.kind === "network") {
@@ -567,7 +567,7 @@ export function KioskProvider({ children }: { children: ReactNode }) {
     }
 
     if (!config.demoMode) {
-      void fpp.setVolume(config.audioOffVolume).catch(() => {});
+      void fpp.setVolume(config.audioOffVolume, config.audioTarget).catch(() => {});
     }
     console.info("[audio] cold boot, muted FPP");
   }, []);
