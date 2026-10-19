@@ -12,6 +12,7 @@ import { LeftRail } from "../components/LeftRail";
 import { NowPlayingCard } from "../components/NowPlayingCard";
 import { PropPanel } from "../components/PropPanel";
 import { QueueList } from "../components/QueueList";
+import { ShowtimesPanel } from "../components/ShowtimesPanel";
 import { SongPicker } from "../components/SongPicker";
 import { useAfterHours } from "../hooks/useAfterHours";
 import { useIdle } from "../hooks/useIdle";
@@ -19,7 +20,7 @@ import { useKiosk } from "../hooks/useKiosk";
 import type { TabId } from "../state/types";
 import { Admin } from "./Admin";
 
-const ATTRACT_IDLE_MS = 60_000;
+const ATTRACT_IDLE_MS = 120_000;
 
 export function Home() {
   const { state } = useKiosk();
@@ -78,6 +79,7 @@ export function Home() {
         {tab === "songs" && <SongPicker />}
         {tab === "props" && <PropPanel />}
         {tab === "audio" && <AudioPanel />}
+        {tab === "shows" && <ShowtimesPanel />}
         {tab === "follow" && <FollowPanel />}
         {tab === "about" && <AboutPanel />}
         {showAttract && <AttractOverlay onDismiss={dismissAttract} />}
