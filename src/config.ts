@@ -98,7 +98,7 @@ export const config = {
   // a named command preset — the preset list on the FPP gets wiped by
   // reinstalls / config resets, and a missing preset silently 500s,
   // leaving the speakers stuck on. Volume Set is a built-in command.
-  audioOnVolume: envNumber("VITE_AUDIO_ON_VOLUME", 70),
+  audioOnVolume: envNumber("VITE_AUDIO_ON_VOLUME", 100),
   audioOffVolume: envNumber("VITE_AUDIO_OFF_VOLUME", 0),
   // PipeWire sink the audio button targets. FPP plays each sequence to
   // one group-sink, so to drive both the rock speakers and the FM
