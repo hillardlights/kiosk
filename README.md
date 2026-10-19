@@ -37,6 +37,64 @@ the ones you'll actually change often:
 | `VITE_SEASON` | `halloween` or `christmas` (swaps header emoji + label) |
 | `VITE_ADMIN_PIN` | PIN gating the admin panel (empty = no PIN) |
 
+## Make it yours
+
+This repo is shared as a reference for the light-show community — fork it,
+rename it, run it in your own driveway. A few things are hardcoded for Hillard
+Lights that you'll want to replace before you ship. All of these are
+one-file edits:
+
+**1. Branding — `src/config.ts`, the `brand` block (~line 144).**
+
+```ts
+brand: {
+  name: "Your Show Name",
+  siteUrl: "https://yourshow.com",
+  fmFrequency: envString("VITE_FM_FREQUENCY", "88.1 FM"),
+  socials: {
+    facebook: { label: "Facebook", handle: "yourshow", url: "...", emoji: "📘" },
+    // ...
+  },
+}
+```
+
+Updates the header, the Follow tab QR codes, the "That's a wrap" splash, and
+the About panel footer.
+
+**2. Remote Falcon show — your subdomain.**
+
+Set `VITE_RF_SUBDOMAIN` in `.env` (and on the Pi, in
+`/boot/firmware/kiosk.conf`). Everything else — song list, categories,
+jukebox depth, request limits — comes back from RF, so once your subdomain
+is set the kiosk pulls your show automatically.
+
+**3. Props — `src/config.ts`, the `DEFAULT_PROPS` array (~line 75).**
+
+Each entry maps a kiosk button to a named FPP command preset. Rename labels,
+emojis, and cooldowns to match the props on your controller. The `preset`
+field must match an FPP command-preset name exactly.
+
+**4. Song metadata (optional) — `src/artworkManifest.ts` and `src/songFacts.ts`.**
+
+Both are keyed by Remote Falcon sequence name. Drop a cover into
+`public/artwork/`, add an entry to the manifest, and the kiosk picks it up on
+the next build. Facts show in the "tap to confirm" popup when a guest
+queues a song. Any sequence without an entry just renders without art/trivia.
+
+**5. The About tab FAQ — `src/components/AboutPanel.tsx`.**
+
+Hardcoded stats + Q&A about the show. Edit or delete entirely.
+
+**6. Admin PIN.**
+
+Default is empty (no PIN). Set `VITE_ADMIN_PIN` in `.env` or
+`kiosk.conf` to any digit string. This is a convenience gate, not a security
+boundary — anyone with physical SD-card access can read it in plain text.
+
+Everything else — Pi hostname, LAN IPs, deploy scripts — is already
+parameterised via `.env` + `deploy/kiosk.conf.example` and needs no code
+changes.
+
 ## Production build
 
 ```bash
