@@ -16,7 +16,13 @@
 # Master switch: false = talk to real RF + FPP, true = local simulator.
 VITE_DEMO_MODE=false
 
-# Falcon Player REST endpoint on the show LAN.
+# Falcon Player REST endpoint. The kiosk now talks to FPP through its
+# own nginx at /fpp/ (same-origin — avoids Chromium silently dropping
+# responses from FPP's drogon server, which doesn't set CORS headers).
+# This line is retained only as documentation of where FPP lives;
+# changing it has no effect on the running kiosk. To point the kiosk
+# at a different FPP, edit `proxy_pass` in deploy/nginx-kiosk.conf and
+# reload nginx. Vite dev-server reads this env var when proxying.
 VITE_FPP_URL=http://192.168.5.8
 
 # Your Remote Falcon show subdomain (the part before .remotefalcon.com).

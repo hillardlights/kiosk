@@ -67,11 +67,6 @@ ExecStart=-/sbin/agetty --autologin $KIOSK_USER --noclear %I \$TERM
 EOF
   systemctl daemon-reload
 
-  log "Installing nginx site config"
-  install -m 0644 "$REPO_DIR/deploy/nginx-kiosk.conf" /etc/nginx/sites-available/kiosk
-  rm -f /etc/nginx/sites-enabled/default
-  ln -sf /etc/nginx/sites-available/kiosk /etc/nginx/sites-enabled/kiosk
-
   log "Installing runtime config systemd unit"
   install -m 0644 "$REPO_DIR/deploy/kiosk-config.service" /etc/systemd/system/kiosk-config.service
   systemctl daemon-reload
@@ -106,6 +101,11 @@ log "Installing chromium kiosk launcher"
 install -m 0755 -o "$KIOSK_USER" -g "$KIOSK_USER" \
   "$REPO_DIR/deploy/chromium-kiosk.sh" \
   "$KIOSK_HOME/chromium-kiosk.sh"
+
+log "Installing nginx site config"
+install -m 0644 "$REPO_DIR/deploy/nginx-kiosk.conf" /etc/nginx/sites-available/kiosk
+rm -f /etc/nginx/sites-enabled/default
+ln -sf /etc/nginx/sites-available/kiosk /etc/nginx/sites-enabled/kiosk
 
 log "Installing runtime config generator"
 install -m 0755 "$REPO_DIR/deploy/generate-config.sh" /usr/local/sbin/kiosk-generate-config.sh

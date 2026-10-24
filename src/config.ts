@@ -83,7 +83,13 @@ const season = envSeason("VITE_SEASON", "halloween");
 export const APP_VERSION = "0.10.0";
 
 export const config = {
-  fppUrl: envString("VITE_FPP_URL", "http://192.168.1.1"),
+  // FPP is reached via the same-origin reverse proxy nginx exposes at
+  // /fpp/ (prod) or that Vite proxies in dev. Hardcoded relative URL
+  // because Chromium silently drops the response from drogon's direct
+  // endpoints (no CORS headers) — the request would never surface
+  // its result to the kiosk even though it reached the controller.
+  // The upstream FPP IP is configured in deploy/nginx-kiosk.conf.
+  fppUrl: "/fpp",
   rfBaseUrl: envString("VITE_RF_BASE_URL", "https://remotefalcon.com/remote-falcon-viewer"),
   rfSubdomain: envString("VITE_RF_SUBDOMAIN", "hillardlightshows"),
   rfPollMs: envNumber("VITE_RF_POLL_MS", 3000),
