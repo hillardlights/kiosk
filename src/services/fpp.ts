@@ -87,18 +87,21 @@ export async function triggerPreset(
 }
 
 // FPP's "FSEQ Effect Start" command plays an .fseq on top of whatever's
-// currently running — the audience-effect pathway. `fseqFile` must be
-// the full filename including extension (e.g. "Fobbles.fseq"); FPP
-// looks it up in the sequence directory and layers it over the show.
-// Note: an older "Overlay Sequence" command name 404s on current FPP;
-// FSEQ Effect Start is the actual command exposed by /api/commands.
+// currently running — the audience-effect pathway. The command takes
+// three positional args: [name, loop, background]. `background=1` is
+// critical: without it the effect runs in "foreground" mode and gets
+// stomped by the active playlist's channel writes every frame, so the
+// physical hardware sees no change. `loop=0` for a one-shot (the fseq
+// has its own duration). `name` is the base effect name without the
+// .fseq extension — same thing FPP's Fire Effect UI passes.
 export async function overlaySequence(
-  fseqFile: string,
+  effectName: string,
   signal?: AbortSignal,
 ): Promise<FppResult> {
-  const encoded = encodeURIComponent(fseqFile);
+  const bareName = effectName.replace(/\.fseq$/i, "");
+  const encoded = encodeURIComponent(bareName);
   const result = await req<unknown>(
-    `/api/command/FSEQ%20Effect%20Start/${encoded}`,
+    `/api/command/FSEQ%20Effect%20Start/${encoded}/0/1`,
     signal,
   );
   if (result.ok) return { ok: true, data: undefined };
