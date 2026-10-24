@@ -86,17 +86,19 @@ export async function triggerPreset(
   return result;
 }
 
-// FPP's "Overlay Sequence" command plays an .fseq on top of whatever's
-// currently running — the audience-effect pathway. `name` must be the
-// full filename including extension (e.g. "Fobbles.fseq"); FPP looks it
-// up in the sequence directory.
+// FPP's "FSEQ Effect Start" command plays an .fseq on top of whatever's
+// currently running — the audience-effect pathway. `fseqFile` must be
+// the full filename including extension (e.g. "Fobbles.fseq"); FPP
+// looks it up in the sequence directory and layers it over the show.
+// Note: an older "Overlay Sequence" command name 404s on current FPP;
+// FSEQ Effect Start is the actual command exposed by /api/commands.
 export async function overlaySequence(
   fseqFile: string,
   signal?: AbortSignal,
 ): Promise<FppResult> {
   const encoded = encodeURIComponent(fseqFile);
   const result = await req<unknown>(
-    `/api/command/Overlay%20Sequence/${encoded}`,
+    `/api/command/FSEQ%20Effect%20Start/${encoded}`,
     signal,
   );
   if (result.ok) return { ok: true, data: undefined };
