@@ -5,6 +5,7 @@ import type { TabId } from "../state/types";
 const TABS: { id: TabId; label: string; emoji: string }[] = [
   { id: "songs", label: "Songs", emoji: "🎵" },
   { id: "shows", label: "Shows", emoji: "🗓️" },
+  { id: "props", label: "Effects", emoji: "🫧" },
   { id: "audio", label: "Audio", emoji: "🔊" },
   { id: "follow", label: "Follow", emoji: "📸" },
   { id: "about", label: "About", emoji: "💡" },

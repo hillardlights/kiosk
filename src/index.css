@@ -239,6 +239,110 @@ button:disabled {
     0 0 40px rgb(var(--accent-rgb) / 0.4);
 }
 
+/* Fobbles hero — witchy purple cauldron at idle, ember glow when firing. */
+.fobbles-button {
+  background:
+    radial-gradient(ellipse at 50% 15%, rgb(var(--cool-rgb) / 0.35), transparent 55%),
+    linear-gradient(180deg, var(--cool-900) 0%, var(--cool-950) 55%, #0b0618 100%);
+  border: 1px solid rgb(var(--cool-rgb) / 0.35);
+  box-shadow:
+    0 0 0 1px rgb(255 255 255 / 0.04) inset,
+    0 20px 50px -20px rgb(var(--cool-rgb) / 0.75),
+    0 0 40px rgb(var(--cool-rgb) / 0.35);
+  min-height: 320px;
+}
+
+.fobbles-button.is-ready {
+  animation: fobbles-breathe 3.4s ease-in-out infinite;
+}
+
+@keyframes fobbles-breathe {
+  0%, 100% {
+    box-shadow:
+      0 0 0 1px rgb(255 255 255 / 0.04) inset,
+      0 20px 50px -20px rgb(var(--cool-rgb) / 0.75),
+      0 0 40px rgb(var(--cool-rgb) / 0.35);
+  }
+  50% {
+    box-shadow:
+      0 0 0 1px rgb(255 255 255 / 0.08) inset,
+      0 24px 60px -18px rgb(var(--cool-rgb) / 0.95),
+      0 0 70px rgb(var(--cool-rgb) / 0.6);
+  }
+}
+
+.fobbles-button.is-firing {
+  background:
+    radial-gradient(ellipse at 50% 15%, rgb(var(--accent-rgb) / 0.4), transparent 55%),
+    linear-gradient(180deg, var(--accent-800) 0%, var(--accent-950) 60%, #120305 100%);
+  border-color: rgb(var(--accent-rgb) / 0.55);
+  box-shadow:
+    0 0 0 1px rgb(255 255 255 / 0.06) inset,
+    0 22px 56px -18px rgb(var(--accent-rgb) / 0.9),
+    0 0 70px rgb(var(--accent-rgb) / 0.55);
+  animation: fobbles-firing 1.6s ease-in-out infinite;
+}
+
+@keyframes fobbles-firing {
+  0%, 100% { filter: brightness(1); }
+  50%      { filter: brightness(1.12); }
+}
+
+.fobbles-button.is-recharging {
+  background: linear-gradient(180deg, #171522 0%, #0a0812 100%);
+  border-color: rgb(255 255 255 / 0.08);
+  box-shadow:
+    0 0 0 1px rgb(255 255 255 / 0.02) inset,
+    0 12px 30px -16px rgb(0 0 0 / 0.6);
+  min-height: 320px;
+}
+
+.fobbles-button.is-error {
+  background: linear-gradient(180deg, #3f1216 0%, #1a0608 100%);
+  border-color: rgb(244 63 94 / 0.4);
+  box-shadow: 0 0 36px rgb(244 63 94 / 0.25);
+}
+
+/* Floating ghost-bubbles that drift up behind the hero when ready. */
+.fobbles-bubble {
+  position: absolute;
+  bottom: 8%;
+  width: 36px;
+  height: 36px;
+  border-radius: 9999px;
+  background: radial-gradient(
+    circle at 35% 35%,
+    rgb(255 255 255 / 0.55) 0%,
+    rgb(var(--cool-rgb) / 0.35) 40%,
+    rgb(var(--cool-rgb) / 0.05) 70%,
+    transparent 80%
+  );
+  box-shadow: inset 0 0 10px rgb(255 255 255 / 0.25);
+  opacity: 0;
+  pointer-events: none;
+  animation: fobbles-float 7s ease-in infinite;
+}
+.fobbles-bubble:nth-child(1) { left: 12%; width: 28px; height: 28px; animation-delay: 0s;    animation-duration: 6.5s; }
+.fobbles-bubble:nth-child(2) { left: 28%; width: 44px; height: 44px; animation-delay: 1.1s;  animation-duration: 8s;   }
+.fobbles-bubble:nth-child(3) { left: 48%; width: 32px; height: 32px; animation-delay: 2.4s;  animation-duration: 7.2s; }
+.fobbles-bubble:nth-child(4) { left: 68%; width: 50px; height: 50px; animation-delay: 0.6s;  animation-duration: 8.6s; }
+.fobbles-bubble:nth-child(5) { left: 84%; width: 24px; height: 24px; animation-delay: 3.3s;  animation-duration: 6s;   }
+
+@keyframes fobbles-float {
+  0%   { transform: translateY(0)      scale(0.6); opacity: 0;    }
+  15%  { opacity: 0.75; }
+  85%  { opacity: 0.5;  }
+  100% { transform: translateY(-280px) scale(1.1); opacity: 0;    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .fobbles-button.is-ready,
+  .fobbles-button.is-firing,
+  .fobbles-bubble {
+    animation: none !important;
+  }
+}
+
 /* Inviting pulse rings around the OFF audio button — signals tappability. */
 .pulse-ring {
   position: absolute;

@@ -69,18 +69,11 @@ function envSeason(
 }
 
 // Halloween effect set. `preset` values must match FPP command-preset names
-// on the show controller — rename here if your FPP presets differ. Cooldowns
-// are 3 min for standard effects, 5 min for the fog-bubble machine which
-// needs longer to reheat between shots.
+// on the show controller — rename here if your FPP presets differ. Fobbles
+// is the only effect currently wired; the preset overlays Fobbles.fseq onto
+// whatever's playing so it doesn't collide with the choreographed show.
 const DEFAULT_PROPS: PropDef[] = [
-  { id: "fobbles",   label: "Fobbles",           preset: "KIOSK_PROP_FOBBLES",   emoji: "🫧",  cooldownSec: 300, cooldownMessage: "Boiling more brew", allowDuringSequence: true  },
-  { id: "bats",      label: "Bat Frenzy",        preset: "KIOSK_PROP_BATS",      emoji: "🦇",  cooldownSec: 180, cooldownMessage: "Bats resettling"    },
-  { id: "thunder",   label: "Rolling Thunder",   preset: "KIOSK_PROP_THUNDER",   emoji: "⛈️",  cooldownSec: 180, cooldownMessage: "Storm gathering"    },
-  { id: "lightning", label: "Lightning Strike",  preset: "KIOSK_PROP_LIGHTNING", emoji: "⚡",  cooldownSec: 180, cooldownMessage: "Storing volts"      },
-  { id: "spider",    label: "Spider Boogie",     preset: "KIOSK_PROP_SPIDER",    emoji: "🕷️", cooldownSec: 180, cooldownMessage: "Legs cramping"      },
-  { id: "eyes-on",   label: "Wake the Watchers", preset: "KIOSK_PROP_EYES_ON",   emoji: "👁️", cooldownSec: 180, cooldownMessage: "Eyelids heavy"      },
-  { id: "flood",     label: "Solar Flare",       preset: "KIOSK_PROP_FLOODLIGHT",emoji: "🔦",  cooldownSec: 180, cooldownMessage: "Bulbs cooling"      },
-  { id: "tombstone", label: "Grave Whisper",     preset: "KIOSK_PROP_TOMBSTONE", emoji: "🪦",  cooldownSec: 180, cooldownMessage: "Skull remembering"  },
+  { id: "fobbles", label: "Fobbles", preset: "KIOSK_PROP_FOBBLES", emoji: "🫧", cooldownSec: 300, cooldownMessage: "Recharging spooky ghost fluid", allowDuringSequence: true },
 ];
 
 const season = envSeason("VITE_SEASON", "halloween");

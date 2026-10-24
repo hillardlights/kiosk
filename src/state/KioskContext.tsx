@@ -453,6 +453,11 @@ export function KioskProvider({ children }: { children: ReactNode }) {
       dispatch({ type: "prop/error", propId, message: msg });
       if (result.error.kind === "network") {
         dispatch({ type: "connection/fpp", state: "offline" });
+        // Rollback the optimistic cooldown — the request didn't make it
+        // to the controller, so holding the user in a 5-min "recharging"
+        // state would be lying. HTTP errors (non-2xx) are left as-is
+        // because FPP sometimes fires the command and still returns 500.
+        dispatch({ type: "prop/ready", propId });
       }
     }
   }, [state.props]);
