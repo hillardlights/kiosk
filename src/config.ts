@@ -68,12 +68,13 @@ function envSeason(
   return fallback;
 }
 
-// Halloween effect set. `preset` values must match FPP command-preset names
-// on the show controller — rename here if your FPP presets differ. Fobbles
-// is the only effect currently wired; the preset overlays Fobbles.fseq onto
-// whatever's playing so it doesn't collide with the choreographed show.
+// Halloween effect set. Fobbles is wired via FPP's "Overlay Sequence"
+// command — plays Fobbles.fseq on top of whatever's running without
+// disturbing the choreographed show. The legacy `preset` field is kept
+// in PropDef for props that still use command presets, but is unused
+// here while the FPP preset list stays empty.
 const DEFAULT_PROPS: PropDef[] = [
-  { id: "fobbles", label: "Fobbles", preset: "KIOSK_PROP_FOBBLES", emoji: "🫧", cooldownSec: 300, cooldownMessage: "Recharging spooky ghost fluid", allowDuringSequence: true },
+  { id: "fobbles", label: "Fobbles", sequence: "Fobbles.fseq", emoji: "🫧", cooldownSec: 300, cooldownMessage: "Recharging spooky ghost fluid", allowDuringSequence: true },
 ];
 
 const season = envSeason("VITE_SEASON", "halloween");

@@ -86,6 +86,23 @@ export async function triggerPreset(
   return result;
 }
 
+// FPP's "Overlay Sequence" command plays an .fseq on top of whatever's
+// currently running — the audience-effect pathway. `name` must be the
+// full filename including extension (e.g. "Fobbles.fseq"); FPP looks it
+// up in the sequence directory.
+export async function overlaySequence(
+  fseqFile: string,
+  signal?: AbortSignal,
+): Promise<FppResult> {
+  const encoded = encodeURIComponent(fseqFile);
+  const result = await req<unknown>(
+    `/api/command/Overlay%20Sequence/${encoded}`,
+    signal,
+  );
+  if (result.ok) return { ok: true, data: undefined };
+  return result;
+}
+
 // Direct volume control via FPP's built-in "Volume Set" command. Used by
 // the audio button so a wiped command-preset list on the FPP can't leave
 // the driveway speakers stuck at full volume. When `target` is set, FPP

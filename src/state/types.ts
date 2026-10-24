@@ -29,7 +29,13 @@ export type NowPlaying = {
 export type PropDef = {
   id: string;
   label: string;
-  preset: string;
+  // One of `sequence` or `preset` must be set. When `sequence` is set the
+  // kiosk calls FPP's "Overlay Sequence" command (plays the .fseq on top
+  // of the running show, no interruption). When only `preset` is set it
+  // falls back to the legacy "Trigger Command Preset" path. `sequence`
+  // takes precedence when both are present.
+  sequence?: string;
+  preset?: string;
   emoji: string;
   cooldownSec: number;
   // Shown in place of the label while the effect is cooling, e.g.

@@ -442,7 +442,22 @@ export function KioskProvider({ children }: { children: ReactNode }) {
 
     if (config.demoMode) return;
 
-    const result = await fpp.triggerPreset(def.preset);
+    const result = def.sequence
+      ? await fpp.overlaySequence(def.sequence)
+      : def.preset
+        ? await fpp.triggerPreset(def.preset)
+        : null;
+
+    if (result === null) {
+      dispatch({
+        type: "prop/error",
+        propId,
+        message: "No FPP target configured",
+      });
+      dispatch({ type: "prop/ready", propId });
+      return;
+    }
+
     if (result.ok) {
       dispatch({ type: "connection/fpp", state: "online" });
     } else {
